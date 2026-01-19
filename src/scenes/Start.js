@@ -66,6 +66,7 @@ export class Start extends Phaser.Scene {
             const img = this.add.image(element.x, element.y, element.name).setOrigin(element.originX, element.originY).setScale(element.scale).setInteractive().setDepth(2);
             img.originalX = element.x;
             img.originalY = element.y;
+            img.isElement = true;
             this.input.setDraggable(img);
         });
 
@@ -83,6 +84,9 @@ export class Start extends Phaser.Scene {
         });
         
         this.input.on('drop', (pointer, gameObject, dropZone) => {
+            // Only allow elements (not compounds) to be dropped
+            if (!gameObject.isElement) return;
+            
             // Create a copy for the drop zone
             const copy = this.add.image(gameObject.x, gameObject.y, gameObject.texture.key).setOrigin(0, 1).setScale(0.3);
             this.elementsInZone.push(copy);
@@ -218,6 +222,7 @@ export class Start extends Phaser.Scene {
         
         compoundImg.originalX = x;
         compoundImg.originalY = y;
+        compoundImg.isElement = false;
         this.input.setDraggable(compoundImg);
         
         this.createdCompounds.push(compoundImg);
