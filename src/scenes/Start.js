@@ -1,4 +1,4 @@
-import { compounds } from '../../data/chemicals.js';
+import { compounds, elements } from '../../data/chemicals.js';
 
 export class Start extends Phaser.Scene {
 
@@ -19,19 +19,15 @@ export class Start extends Phaser.Scene {
         this.load.image('hint', 'assets/scientist/hint.png');
         this.load.image('shock', 'assets/scientist/shock.png');
 
-        this.load.image('hydrogen', 'assets/elements/hydrogen.png');    // 1
-        this.load.image('carbon', 'assets/elements/carbon.png');        // 6
-        this.load.image('nitrogen', 'assets/elements/nitrogen.png');    // 7
-        this.load.image('oxygen', 'assets/elements/oxygen.png');        // 8
-        this.load.image('sodium', 'assets/elements/sodium.png');        // 11
-        this.load.image('magnesium', 'assets/elements/magnesium.png');  // 12
-        this.load.image('sulfur', 'assets/elements/sulfur.png');        // 16
-        this.load.image('chlorine', 'assets/elements/chlorine.png');    // 17
-        this.load.image('calcium', 'assets/elements/calcium.png');      // 20
-        this.load.image('iron', 'assets/elements/iron.png');            // 26
-        this.load.image('copper', 'assets/elements/copper.png');        // 29
-        this.load.image('zinc', 'assets/elements/zinc.png');            // 30
-        this.load.image('silver', 'assets/elements/silver.png');        // 47
+        // Load element images from chemicals.js
+        elements.forEach(element => {
+            this.load.image(element.textureKey, element.imagePath);
+        });
+
+        // Load compound images from chemicals.js
+        compounds.forEach(compound => {
+            this.load.image(compound.textureKey, compound.imagePath);
+        });
     }
 
     create() {
@@ -45,25 +41,29 @@ export class Start extends Phaser.Scene {
         this.buttonPressed = false;
         this.clearButtonPressed = false;
 
-        // Create all draggable elements
+        // Available positions for new compounds in inventory
+        this.compoundSlots = [{x: 415, y: 660}, {x: 515, y: 660}, {x: 115, y: 790}, {x: 215, y: 790}, {x: 315, y: 790}, {x: 415, y: 790}, {x: 515, y: 790}];
+        this.nextSlotIndex = 0;
+        this.createdCompounds = [];
+
         const elements = [
-            {name: 'hydrogen', x: 70, y: 430},
-            {name: 'carbon', x: 170, y: 430},
-            {name: 'nitrogen', x: 270, y: 430},
-            {name: 'oxygen', x: 370, y: 430},
-            {name: 'sodium', x: 470, y: 430},
-            {name: 'magnesium', x: 70, y: 567},
-            {name: 'sulfur', x: 170, y: 567},
-            {name: 'chlorine', x: 270, y: 567},
-            {name: 'calcium', x: 370, y: 567},
-            {name: 'iron', x: 470, y: 567},
-            {name: 'copper', x: 70, y: 702},
-            {name: 'zinc', x: 170, y: 702},
-            {name: 'silver', x: 270, y: 702}
+            {name: 'hydrogen', x: 70, y: 430, scale: 0.3, originX: 0, originY: 1},
+            {name: 'carbon', x: 170, y: 430, scale: 0.3, originX: 0, originY: 1},
+            {name: 'nitrogen', x: 270, y: 430, scale: 0.3, originX: 0, originY: 1},
+            {name: 'oxygen', x: 370, y: 430, scale: 0.3, originX: 0, originY: 1},
+            {name: 'sodium', x: 470, y: 430, scale: 0.3, originX: 0, originY: 1},
+            {name: 'magnesium', x: 70, y: 567, scale: 0.3, originX: 0, originY: 1},
+            {name: 'sulfur', x: 170, y: 567, scale: 0.3, originX: 0, originY: 1},
+            {name: 'chlorine', x: 270, y: 567, scale: 0.3, originX: 0, originY: 1},
+            {name: 'calcium', x: 370, y: 567, scale: 0.3, originX: 0, originY: 1},
+            {name: 'iron', x: 470, y: 567, scale: 0.3, originX: 0, originY: 1},
+            {name: 'copper', x: 70, y: 702, scale: 0.3, originX: 0, originY: 1},
+            {name: 'zinc', x: 170, y: 702, scale: 0.3, originX: 0, originY: 1},
+            {name: 'silver', x: 270, y: 702, scale: 0.3, originX: 0, originY: 1},
         ];
         
         elements.forEach(element => {
-            const img = this.add.image(element.x, element.y, element.name).setOrigin(0, 1).setScale(0.3).setInteractive();
+            const img = this.add.image(element.x, element.y, element.name).setOrigin(element.originX, element.originY).setScale(element.scale).setInteractive();
             img.originalX = element.x;
             img.originalY = element.y;
             this.input.setDraggable(img);
@@ -151,6 +151,7 @@ export class Start extends Phaser.Scene {
             
             if (foundCompound) {
                 console.log(`Created compound: ${foundCompound.name} (${foundCompound.symbol})`);
+                this.addCompoundToInventory(foundCompound);
             }
             
             this.time.delayedCall(2000, () => {
@@ -185,6 +186,23 @@ export class Start extends Phaser.Scene {
         });
         
         this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.9);
+    }
+
+    addCompoundToInventory(compound) {
+        if (this.nextSlotIndex >= this.compoundSlots.length) return;
+        
+        const slot = this.compoundSlots[this.nextSlotIndex];
+        const compoundImg = this.add.image(slot.x, slot.y, compound.textureKey)
+            .setOrigin(0.5, 0.5)
+            .setScale(compound.scale)
+            .setInteractive();
+        
+        compoundImg.originalX = slot.x;
+        compoundImg.originalY = slot.y;
+        this.input.setDraggable(compoundImg);
+        
+        this.createdCompounds.push(compoundImg);
+        this.nextSlotIndex++;
     }
 
     checkForCompound(elementsInZone) {
