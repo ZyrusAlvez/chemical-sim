@@ -75,26 +75,37 @@ export class Start extends Phaser.Scene {
         });
         
         this.input.on('drop', (pointer, gameObject, dropZone) => {
-            this.elementsInZone.push(gameObject);
-            gameObject.inDropZone = true;
+            // Create a copy for the drop zone
+            const copy = this.add.image(gameObject.x, gameObject.y, gameObject.texture.key).setOrigin(0, 1).setScale(0.3);
+            this.elementsInZone.push(copy);
+            copy.inDropZone = true;
+            
+            // Return original to inventory
+            this.tweens.add({
+                targets: gameObject,
+                x: gameObject.originalX,
+                y: gameObject.originalY,
+                duration: 300,
+                ease: 'Power2'
+            });
             
             // Print all chemicals in drop zone
             const chemicalsInZone = this.elementsInZone.map(element => element.texture.key);
             console.log('Chemicals in drop zone:', chemicalsInZone);
             
-            // Scale down and start floating animation
+            // Scale down and start floating animation on copy
             this.tweens.add({
-                targets: gameObject,
+                targets: copy,
                 scaleX: 0.15,
                 scaleY: 0.15,
                 duration: 300,
                 ease: 'Power2'
             });
             
-            // Add floating animation
-            gameObject.floatTween = this.tweens.add({
-                targets: gameObject,
-                y: gameObject.y - 20,
+            // Add floating animation to copy
+            copy.floatTween = this.tweens.add({
+                targets: copy,
+                y: copy.y - 20,
                 duration: 2000,
                 ease: 'Sine.easeInOut',
                 yoyo: true,
