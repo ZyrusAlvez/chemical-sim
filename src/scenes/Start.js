@@ -65,12 +65,36 @@ export class Start extends Phaser.Scene {
         this.input.on('drop', (pointer, gameObject, dropZone) => {
             this.elementsInZone.push(gameObject);
             gameObject.inDropZone = true;
+            
+            // Scale down and start floating animation
+            this.tweens.add({
+                targets: gameObject,
+                scaleX: 0.15,
+                scaleY: 0.15,
+                duration: 300,
+                ease: 'Power2'
+            });
+            
+            // Add floating animation
+            gameObject.floatTween = this.tweens.add({
+                targets: gameObject,
+                y: gameObject.y - 20,
+                duration: 2000,
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: -1
+            });
         });
         
         this.input.on('dragend', (pointer, gameObject) => {
             if (!gameObject.inDropZone) {
-                gameObject.x = gameObject.originalX;
-                gameObject.y = gameObject.originalY;
+                this.tweens.add({
+                    targets: gameObject,
+                    x: gameObject.originalX,
+                    y: gameObject.originalY,
+                    duration: 300,
+                    ease: 'Power2'
+                });
             }
         });
         this.add.image(270, 430, 'nitrogen').setOrigin(0, 1).setScale(0.3);
