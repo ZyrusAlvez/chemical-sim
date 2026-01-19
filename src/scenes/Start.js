@@ -32,7 +32,7 @@ export class Start extends Phaser.Scene {
 
     create() {
         this.add.image(928, 522, 'background').setDisplaySize(1856, 1044);
-        this.add.image(-200, 1200, 'shelf').setOrigin(0, 1).setScale(1);
+        this.shelf = this.add.image(-200, 1200, 'shelf').setOrigin(0, 1).setScale(1).setDepth(1);
         this.add.image(380, 1050, 'combineMachine').setOrigin(0, 1).setScale(1);
         this.combineBtn = this.add.image(1008, 879, 'btn_combine').setOrigin(0, 1).setScale(0.35).setInteractive({ cursor: 'pointer' });
         this.combineBtnPressed = this.add.image(1008, 879, 'btn_combine_pressed').setOrigin(0, 1).setScale(0.35).setVisible(false);
@@ -63,7 +63,7 @@ export class Start extends Phaser.Scene {
         ];
         
         elements.forEach(element => {
-            const img = this.add.image(element.x, element.y, element.name).setOrigin(element.originX, element.originY).setScale(element.scale).setInteractive();
+            const img = this.add.image(element.x, element.y, element.name).setOrigin(element.originX, element.originY).setScale(element.scale).setInteractive().setDepth(2);
             img.originalX = element.x;
             img.originalY = element.y;
             this.input.setDraggable(img);
@@ -189,20 +189,38 @@ export class Start extends Phaser.Scene {
     }
 
     addCompoundToInventory(compound) {
-        if (this.nextSlotIndex >= this.compoundSlots.length) return;
+        let x, y, scale;
         
-        const slot = this.compoundSlots[this.nextSlotIndex];
-        const compoundImg = this.add.image(slot.x, slot.y, compound.textureKey)
+        if (compound.name === 'Methane') {
+            // Custom position and scale for methane - adjust these values as needed
+            x = 620;
+            y = 800;
+            scale = 0.5;
+        } else {
+            if (this.nextSlotIndex >= this.compoundSlots.length) return;
+            const slot = this.compoundSlots[this.nextSlotIndex];
+            x = slot.x;
+            y = slot.y;
+            scale = compound.scale;
+            this.nextSlotIndex++;
+        }
+        
+        const compoundImg = this.add.image(x, y, compound.textureKey)
             .setOrigin(0.5, 0.5)
-            .setScale(compound.scale)
+            .setScale(scale)
             .setInteractive();
         
-        compoundImg.originalX = slot.x;
-        compoundImg.originalY = slot.y;
+        if (compound.name === 'Methane') {
+            compoundImg.setDepth(0); // Behind shelf
+        } else {
+            compoundImg.setDepth(2); // In front of shelf
+        }
+        
+        compoundImg.originalX = x;
+        compoundImg.originalY = y;
         this.input.setDraggable(compoundImg);
         
         this.createdCompounds.push(compoundImg);
-        this.nextSlotIndex++;
     }
 
     checkForCompound(elementsInZone) {
