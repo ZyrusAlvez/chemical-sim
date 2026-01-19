@@ -174,7 +174,7 @@ export class Start extends Phaser.Scene {
             });
         });
         
-        this.add.image(1000, 1000, 'default').setOrigin(0, 1).setScale(1.7);
+        this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.9);
     }
 
     update() {
