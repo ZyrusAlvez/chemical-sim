@@ -37,21 +37,33 @@ export class Start extends Phaser.Scene {
         this.combineBtn = this.add.image(840, 968, 'btn_combine').setOrigin(0, 1).setScale(0.35).setInteractive({ cursor: 'pointer' });
         this.combineBtnPressed = this.add.image(840, 968, 'btn_combine_pressed').setOrigin(0, 1).setScale(0.35).setVisible(false);
 
-        // Create draggable elements
-        this.hydrogen = this.add.image(70, 430, 'hydrogen').setOrigin(0, 1).setScale(0.3).setInteractive();
-        this.hydrogen.originalX = 70;
-        this.hydrogen.originalY = 430;
-        this.input.setDraggable(this.hydrogen);
+        // Create all draggable elements
+        const elements = [
+            {name: 'hydrogen', x: 70, y: 430},
+            {name: 'carbon', x: 170, y: 430},
+            {name: 'nitrogen', x: 270, y: 430},
+            {name: 'oxygen', x: 370, y: 430},
+            {name: 'sodium', x: 470, y: 430},
+            {name: 'magnesium', x: 70, y: 567},
+            {name: 'sulfur', x: 170, y: 567},
+            {name: 'chlorine', x: 270, y: 567},
+            {name: 'calcium', x: 370, y: 567},
+            {name: 'iron', x: 470, y: 567},
+            {name: 'copper', x: 70, y: 702},
+            {name: 'zinc', x: 170, y: 702},
+            {name: 'silver', x: 270, y: 702}
+        ];
         
-        this.carbon = this.add.image(170, 430, 'carbon').setOrigin(0, 1).setScale(0.3).setInteractive();
-        this.carbon.originalX = 170;
-        this.carbon.originalY = 430;
-        this.input.setDraggable(this.carbon);
+        elements.forEach(element => {
+            const img = this.add.image(element.x, element.y, element.name).setOrigin(0, 1).setScale(0.3).setInteractive();
+            img.originalX = element.x;
+            img.originalY = element.y;
+            this.input.setDraggable(img);
+        });
 
         // Create drop zone (combine machine area)
         this.dropZoneGraphics = this.add.graphics();
         this.dropZoneGraphics.fillStyle(0xff0000, 0.3);
-        this.dropZoneGraphics.fillRect(970, 600, 200, 180);
         this.dropZone = this.add.zone(1070, 690, 200, 180).setRectangleDropZone(200, 180);
         
         this.elementsInZone = [];
@@ -65,6 +77,10 @@ export class Start extends Phaser.Scene {
         this.input.on('drop', (pointer, gameObject, dropZone) => {
             this.elementsInZone.push(gameObject);
             gameObject.inDropZone = true;
+            
+            // Print all chemicals in drop zone
+            const chemicalsInZone = this.elementsInZone.map(element => element.texture.key);
+            console.log('Chemicals in drop zone:', chemicalsInZone);
             
             // Scale down and start floating animation
             this.tweens.add({
@@ -97,17 +113,7 @@ export class Start extends Phaser.Scene {
                 });
             }
         });
-        this.add.image(270, 430, 'nitrogen').setOrigin(0, 1).setScale(0.3);
-        this.add.image(370, 430, 'oxygen').setOrigin(0, 1).setScale(0.3);
-        this.add.image(470, 430, 'sodium').setOrigin(0, 1).setScale(0.3);
-        this.add.image(70, 567, 'magnesium').setOrigin(0, 1).setScale(0.3);
-        this.add.image(170, 567, 'sulfur').setOrigin(0, 1).setScale(0.3);
-        this.add.image(270, 567, 'chlorine').setOrigin(0, 1).setScale(0.3);
-        this.add.image(370, 567, 'calcium').setOrigin(0, 1).setScale(0.3);
-        this.add.image(470, 567, 'iron').setOrigin(0, 1).setScale(0.3);
-        this.add.image(70, 702, 'copper').setOrigin(0, 1).setScale(0.3);
-        this.add.image(170, 702, 'zinc').setOrigin(0, 1).setScale(0.3);
-        this.add.image(270, 702, 'silver').setOrigin(0, 1).setScale(0.3);
+
 
 
 
