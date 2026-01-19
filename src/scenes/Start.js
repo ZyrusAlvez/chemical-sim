@@ -34,8 +34,9 @@ export class Start extends Phaser.Scene {
         this.add.image(928, 522, 'background').setDisplaySize(1856, 1044);
         this.add.image(-200, 1200, 'shelf').setOrigin(0, 1).setScale(1);
         this.add.image(380, 1050, 'combineMachine').setOrigin(0, 1).setScale(1);
-        this.combineBtn = this.add.image(840, 968, 'btn_combine').setOrigin(0, 1).setScale(0.35).setInteractive({ cursor: 'pointer' });
-        this.combineBtnPressed = this.add.image(840, 968, 'btn_combine_pressed').setOrigin(0, 1).setScale(0.35).setVisible(false);
+        this.combineBtn = this.add.image(1008, 879, 'btn_combine').setOrigin(0, 1).setScale(0.35).setInteractive({ cursor: 'pointer' });
+        this.combineBtnPressed = this.add.image(1008, 879, 'btn_combine_pressed').setOrigin(0, 1).setScale(0.35).setVisible(false);
+        this.buttonPressed = false;
 
         // Create all draggable elements
         const elements = [
@@ -130,18 +131,19 @@ export class Start extends Phaser.Scene {
 
         
         this.combineBtn.on('pointerdown', () => {
+            if (this.buttonPressed) return;
+            
+            this.buttonPressed = true;
             this.combineBtn.setVisible(false);
             this.combineBtnPressed.setVisible(true);
-        });
-        
-        this.combineBtn.on('pointerup', () => {
-            this.combineBtn.setVisible(true);
-            this.combineBtnPressed.setVisible(false);
-        });
-        
-        this.combineBtn.on('pointerout', () => {
-            this.combineBtn.setVisible(true);
-            this.combineBtnPressed.setVisible(false);
+            this.combineBtn.disableInteractive();
+            
+            this.time.delayedCall(2000, () => {
+                this.combineBtn.setVisible(true);
+                this.combineBtnPressed.setVisible(false);
+                this.combineBtn.setInteractive();
+                this.buttonPressed = false;
+            });
         });
         
         this.add.image(1000, 1000, 'default').setOrigin(0, 1).setScale(1.7);
