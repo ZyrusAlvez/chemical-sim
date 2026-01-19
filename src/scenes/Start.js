@@ -10,6 +10,8 @@ export class Start extends Phaser.Scene {
         this.load.image('combineMachine', 'assets/combine_machine.png');
         this.load.image('btn_combine', 'assets/ui/btn_combine.png');
         this.load.image('btn_combine_pressed', 'assets/ui/btn_combine_pressed.png');
+        this.load.image('btn_clear', 'assets/ui/btn_clear.png');
+        this.load.image('btn_clear_pressed', 'assets/ui/btn_clear_pressed.png');
         this.load.image('default', 'assets/scientist/default.png');
         this.load.image('excited', 'assets/scientist/excited.png');
         this.load.image('hint', 'assets/scientist/hint.png');
@@ -36,7 +38,10 @@ export class Start extends Phaser.Scene {
         this.add.image(380, 1050, 'combineMachine').setOrigin(0, 1).setScale(1);
         this.combineBtn = this.add.image(1008, 879, 'btn_combine').setOrigin(0, 1).setScale(0.35).setInteractive({ cursor: 'pointer' });
         this.combineBtnPressed = this.add.image(1008, 879, 'btn_combine_pressed').setOrigin(0, 1).setScale(0.35).setVisible(false);
+        this.clearBtn = this.add.image(1016, 957, 'btn_clear').setOrigin(0, 1).setScale(0.3).setInteractive({ cursor: 'pointer' });
+        this.clearBtnPressed = this.add.image(1016, 957, 'btn_clear_pressed').setOrigin(0, 1).setScale(0.3).setVisible(false);
         this.buttonPressed = false;
+        this.clearButtonPressed = false;
 
         // Create all draggable elements
         const elements = [
@@ -143,6 +148,29 @@ export class Start extends Phaser.Scene {
                 this.combineBtnPressed.setVisible(false);
                 this.combineBtn.setInteractive();
                 this.buttonPressed = false;
+            });
+        });
+        
+        this.clearBtn.on('pointerdown', () => {
+            if (this.clearButtonPressed) return;
+            
+            this.clearButtonPressed = true;
+            this.clearBtn.setVisible(false);
+            this.clearBtnPressed.setVisible(true);
+            this.clearBtn.disableInteractive();
+            
+            // Clear all elements in drop zone
+            this.elementsInZone.forEach(element => {
+                if (element.floatTween) element.floatTween.destroy();
+                element.destroy();
+            });
+            this.elementsInZone = [];
+            
+            this.time.delayedCall(2000, () => {
+                this.clearBtn.setVisible(true);
+                this.clearBtnPressed.setVisible(false);
+                this.clearBtn.setInteractive();
+                this.clearButtonPressed = false;
             });
         });
         
