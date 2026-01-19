@@ -64,7 +64,7 @@ export class Start extends Phaser.Scene {
         // Create drop zone (combine machine area)
         this.dropZoneGraphics = this.add.graphics();
         this.dropZoneGraphics.fillStyle(0xff0000, 0.3);
-        this.dropZone = this.add.zone(1070, 690, 200, 180).setRectangleDropZone(200, 180);
+        this.dropZone = this.add.zone(1070, 685, 170, 150).setRectangleDropZone(170, 150);
         
         this.elementsInZone = [];
         
