@@ -1,3 +1,5 @@
+import { compounds } from '../../data/chemicals.js';
+
 export class Start extends Phaser.Scene {
 
     constructor() {
@@ -143,6 +145,14 @@ export class Start extends Phaser.Scene {
             this.combineBtnPressed.setVisible(true);
             this.combineBtn.disableInteractive();
             
+            // Check for compound combinations
+            const elementsInZone = this.elementsInZone.map(element => element.texture.key);
+            const foundCompound = this.checkForCompound(elementsInZone);
+            
+            if (foundCompound) {
+                console.log(`Created compound: ${foundCompound.name} (${foundCompound.symbol})`);
+            }
+            
             this.time.delayedCall(2000, () => {
                 this.combineBtn.setVisible(true);
                 this.combineBtnPressed.setVisible(false);
@@ -175,6 +185,25 @@ export class Start extends Phaser.Scene {
         });
         
         this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.9);
+    }
+
+    checkForCompound(elementsInZone) {
+        const elementCounts = {};
+        elementsInZone.forEach(element => {
+            elementCounts[element] = (elementCounts[element] || 0) + 1;
+        });
+        
+        return compounds.find(compound => {
+            const requiredElements = {};
+            for (let [element, count] of compound.property) {
+                requiredElements[element.name.toLowerCase()] = count;
+            }
+            
+            return Object.keys(requiredElements).length === Object.keys(elementCounts).length &&
+                   Object.keys(requiredElements).every(element => 
+                       elementCounts[element] === requiredElements[element]
+                   );
+        });
     }
 
     update() {

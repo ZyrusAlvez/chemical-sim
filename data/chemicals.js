@@ -18,19 +18,19 @@ export class Compound {
   }
 }
 
-const magnesium = new ChemicalElement("Magnesium", "Mg", "solid"); d
-const sodium = new ChemicalElement("Sodium", "Na", "solid"); d
-const iron = new ChemicalElement("Iron", "Fe", "solid"); d
-const carbon = new ChemicalElement("Carbon", "C", "solid"); d
-const oxygen = new ChemicalElement("Oxygen", "O", "gas"); d
-const hydrogen = new ChemicalElement("Hydrogen", "H", "gas"); d
-const chlorine = new ChemicalElement("Chlorine", "Cl", "gas"); d
+const magnesium = new ChemicalElement("Magnesium", "Mg", "solid"); 
+const sodium = new ChemicalElement("Sodium", "Na", "solid"); 
+const iron = new ChemicalElement("Iron", "Fe", "solid"); 
+const carbon = new ChemicalElement("Carbon", "C", "solid"); 
+const oxygen = new ChemicalElement("Oxygen", "O", "gas"); 
+const hydrogen = new ChemicalElement("Hydrogen", "H", "gas");
+const chlorine = new ChemicalElement("Chlorine", "Cl", "gas");
 const zinc = new ChemicalElement("Zinc", "Zn", "solid");
-const calcium = new ChemicalElement("Calcium", "Ca", "solid"); d
+const calcium = new ChemicalElement("Calcium", "Ca", "solid"); 
 const silver = new ChemicalElement("Silver", "Ag", "solid");
-const nitrogen = new ChemicalElement("Nitrogen", "N", "gas");  d
+const nitrogen = new ChemicalElement("Nitrogen", "N", "gas");  
 const copper = new ChemicalElement("Copper", "Cu", "solid");
-const sulfur = new ChemicalElement("Sulfur", "S", "solid"); d
+const sulfur = new ChemicalElement("Sulfur", "S", "solid"); 
 
 const water = new Compound("Water", "H2O", "liquid", "solvent", "electricity (high)", "", new Map([[hydrogen, 2], [oxygen, 1]]));
 const hydrochloricAcid = new Compound("Hydrochloric Acid", "HCl", "liquid", "acid", "", "", new Map([[hydrogen, 1], [chlorine, 1]]));
