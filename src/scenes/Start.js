@@ -81,6 +81,11 @@ export class Start extends Phaser.Scene {
         this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
             gameObject.x = dragX;
             gameObject.y = dragY;
+            // Move text label with compound if it exists
+            if (gameObject.labelText) {
+                gameObject.labelText.x = dragX;
+                gameObject.labelText.y = dragY + 50;
+            }
         });
         
         this.input.on('drop', (pointer, gameObject, dropZone) => {
@@ -134,6 +139,16 @@ export class Start extends Phaser.Scene {
                     duration: 300,
                     ease: 'Power2'
                 });
+                // Move text label back with compound if it exists
+                if (gameObject.labelText) {
+                    this.tweens.add({
+                        targets: gameObject.labelText,
+                        x: gameObject.originalX,
+                        y: gameObject.originalY + 50,
+                        duration: 300,
+                        ease: 'Power2'
+                    });
+                }
             }
         });
 
@@ -214,15 +229,33 @@ export class Start extends Phaser.Scene {
             .setScale(scale)
             .setInteractive();
         
+        // Add text label below compound
+        const words = compound.name.split(' ');
+        let displayText = compound.name;
+        if (words.length === 2) {
+            displayText = words[0] + '\n' + words[1];
+        }
+        
+        const compoundText = this.add.text(x, y + 50, displayText, {
+            fontSize: '16px',
+            fill: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 2,
+            align: 'center'
+        }).setOrigin(0.5, 0);
+        
         if (compound.name === 'Methane') {
             compoundImg.setDepth(0); // Behind shelf
+            compoundText.setDepth(0); // Behind shelf
         } else {
             compoundImg.setDepth(2); // In front of shelf
+            compoundText.setDepth(2); // In front of shelf
         }
         
         compoundImg.originalX = x;
         compoundImg.originalY = y;
         compoundImg.isElement = false;
+        compoundImg.labelText = compoundText; // Store reference to text
         this.input.setDraggable(compoundImg);
         
         this.createdCompounds.push(compoundImg);
