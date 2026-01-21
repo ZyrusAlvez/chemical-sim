@@ -18,6 +18,7 @@ export class Start extends Phaser.Scene {
         this.load.image('excited', 'assets/scientist/excited.png');
         this.load.image('hint', 'assets/scientist/hint.png');
         this.load.image('shock', 'assets/scientist/shock.png');
+        this.load.image('congrats_bg', 'assets/congrats_bg.png');
 
         // Load element images from chemicals.js
         elements.forEach(element => {
@@ -208,6 +209,9 @@ export class Start extends Phaser.Scene {
     }
 
     addCompoundToInventory(compound) {
+        // Show congratulations screen first
+        this.showCongratsScreen(compound);
+        
         let x, y, scale;
         
         if (compound.name === 'Methane') {
@@ -259,6 +263,53 @@ export class Start extends Phaser.Scene {
         this.input.setDraggable(compoundImg);
         
         this.createdCompounds.push(compoundImg);
+    }
+
+    showCongratsScreen(compound) {
+        // Create fullscreen background with 50% opacity
+        const congratsBg = this.add.image(928, 522, 'congrats_bg')
+            .setDisplaySize(1856, 1044)
+            .setAlpha(0.5)
+            .setDepth(1000);
+        
+        // Create compound image at center
+        const congratsCompound = this.add.image(928, 450, compound.textureKey)
+            .setScale(0.5)
+            .setDepth(1001);
+        
+        // Create compound name text below image (accounting for image height)
+        const imageHeight = congratsCompound.displayHeight;
+        const congratsText = this.add.text(928, congratsCompound.y + (imageHeight / 2) + 30, compound.name, {
+            fontSize: '48px',
+            fill: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 4,
+            align: 'center'
+        }).setOrigin(0.5).setDepth(1001);
+        
+        // Auto-hide after 3 seconds
+        this.time.delayedCall(3000, () => {
+            congratsBg.destroy();
+            congratsCompound.destroy();
+            congratsText.destroy();
+            this.clearDropZone();
+        });
+        
+        // Allow click to dismiss early
+        congratsBg.setInteractive().on('pointerdown', () => {
+            congratsBg.destroy();
+            congratsCompound.destroy();
+            congratsText.destroy();
+            this.clearDropZone();
+        });
+    }
+
+    clearDropZone() {
+        this.elementsInZone.forEach(element => {
+            if (element.floatTween) element.floatTween.destroy();
+            element.destroy();
+        });
+        this.elementsInZone = [];
     }
 
     checkForCompound(elementsInZone) {
