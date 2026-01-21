@@ -19,6 +19,7 @@ export class Start extends Phaser.Scene {
         this.load.image('hint', 'assets/scientist/hint.png');
         this.load.image('shock', 'assets/scientist/shock.png');
         this.load.image('congrats_bg', 'assets/congrats_bg.png');
+        this.load.image('newCompoundText', 'assets/newCompoundText.png');
 
         // Load element images from chemicals.js
         elements.forEach(element => {
@@ -205,7 +206,7 @@ export class Start extends Phaser.Scene {
             });
         });
         
-        this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.9);
+        this.scientist = this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.9);
     }
 
     addCompoundToInventory(compound) {
@@ -266,14 +267,33 @@ export class Start extends Phaser.Scene {
     }
 
     showCongratsScreen(compound) {
+        // Change scientist to excited
+        this.scientist.setTexture('excited');
+        
         // Create fullscreen background with 50% opacity
         const congratsBg = this.add.image(928, 522, 'congrats_bg')
-            .setDisplaySize(1856, 1044)
+            .setOrigin(0.5, 0.5)
+            .setDisplaySize(2500, 2500)
             .setAlpha(0.5)
             .setDepth(1000);
         
-        // Create compound image at center
-        const congratsCompound = this.add.image(928, 450, compound.textureKey)
+        // Add slow rotation animation
+        this.tweens.add({
+            targets: congratsBg,
+            rotation: Math.PI * 2,
+            duration: 10000,
+            ease: 'Linear',
+            repeat: -1
+        });
+        
+        // Add "New Compound!" image at center top
+        const newCompoundText = this.add.image(928, 50, 'newCompoundText')
+            .setScale(1.5)
+            .setOrigin(0.5)
+            .setDepth(1001);
+        
+        // Create compound image at center (moved down)
+        const congratsCompound = this.add.image(928, 500, compound.textureKey)
             .setScale(0.5)
             .setDepth(1001);
         
@@ -290,16 +310,20 @@ export class Start extends Phaser.Scene {
         // Auto-hide after 3 seconds
         this.time.delayedCall(3000, () => {
             congratsBg.destroy();
+            newCompoundText.destroy();
             congratsCompound.destroy();
             congratsText.destroy();
+            this.scientist.setTexture('default'); // Change back to default
             this.clearDropZone();
         });
         
         // Allow click to dismiss early
         congratsBg.setInteractive().on('pointerdown', () => {
             congratsBg.destroy();
+            newCompoundText.destroy();
             congratsCompound.destroy();
             congratsText.destroy();
+            this.scientist.setTexture('default'); // Change back to default
             this.clearDropZone();
         });
     }
