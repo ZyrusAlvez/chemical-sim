@@ -47,6 +47,7 @@ export class Start extends Phaser.Scene {
         this.compoundSlots = [{x: 415, y: 660}, {x: 515, y: 660}, {x: 115, y: 790}, {x: 215, y: 790}, {x: 315, y: 790}, {x: 415, y: 790}, {x: 515, y: 790}];
         this.nextSlotIndex = 0;
         this.createdCompounds = [];
+        this.createdCompoundNames = new Set(); // Track created compound names
 
         const elements = [
             {name: 'hydrogen', x: 70, y: 430, scale: 0.3, originX: 0, originY: 1},
@@ -170,7 +171,7 @@ export class Start extends Phaser.Scene {
             const elementsInZone = this.elementsInZone.map(element => element.texture.key);
             const foundCompound = this.checkForCompound(elementsInZone);
             
-            if (foundCompound) {
+            if (foundCompound && !this.createdCompoundNames.has(foundCompound.name)) {
                 console.log(`Created compound: ${foundCompound.name} (${foundCompound.symbol})`);
                 this.addCompoundToInventory(foundCompound);
             }
@@ -210,6 +211,9 @@ export class Start extends Phaser.Scene {
     }
 
     addCompoundToInventory(compound) {
+        // Add to created compounds set
+        this.createdCompoundNames.add(compound.name);
+        
         // Show congratulations screen first
         this.showCongratsScreen(compound);
         
