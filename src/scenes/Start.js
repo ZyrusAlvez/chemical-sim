@@ -280,6 +280,9 @@ export class Start extends Phaser.Scene {
     }
 
     showWrongFormulaMessage() {
+        // Disable input
+        this.input.enabled = false;
+        
         // Change scientist to shock
         this.scientist.setTexture('shock');
         
@@ -293,11 +296,15 @@ export class Start extends Phaser.Scene {
         this.time.delayedCall(4000, () => {
             wrongFormulaImg.destroy();
             this.scientist.setTexture('default');
+            this.input.enabled = true; // Re-enable input
             this.clearDropZone();
         });
     }
 
     showAlreadyFormulatedMessage() {
+        // Disable input
+        this.input.enabled = false;
+        
         // Change scientist to shock
         this.scientist.setTexture('shock');
         
@@ -311,11 +318,15 @@ export class Start extends Phaser.Scene {
         this.time.delayedCall(4000, () => {
             alreadyFormulatedImg.destroy();
             this.scientist.setTexture('default');
+            this.input.enabled = true; // Re-enable input
             this.clearDropZone();
         });
     }
 
     showCongratsScreen(compound) {
+        // Disable input
+        this.input.enabled = false;
+        
         // Change scientist to excited
         this.scientist.setTexture('excited');
         
@@ -370,6 +381,7 @@ export class Start extends Phaser.Scene {
             congratsText.destroy();
             this.scientist.setTexture('default'); // Change back to default
             this.bubbleTimer.paused = false; // Resume bubble animations
+            this.input.enabled = true; // Re-enable input
             this.clearDropZone();
         });
         
@@ -381,6 +393,7 @@ export class Start extends Phaser.Scene {
             congratsText.destroy();
             this.scientist.setTexture('default'); // Change back to default
             this.bubbleTimer.paused = false; // Resume bubble animations
+            this.input.enabled = true; // Re-enable input
             this.clearDropZone();
         });
     }
