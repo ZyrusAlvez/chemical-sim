@@ -20,6 +20,7 @@ export class Start extends Phaser.Scene {
         this.load.image('shock', 'assets/scientist/shock.png');
         this.load.image('congrats_bg', 'assets/congrats_bg.png');
         this.load.image('newCompoundText', 'assets/newCompoundText.png');
+        this.load.image('already_formulated', 'assets/speech/already_formulated.png');
 
         // Load element images from chemicals.js
         elements.forEach(element => {
@@ -174,6 +175,8 @@ export class Start extends Phaser.Scene {
             if (foundCompound && !this.createdCompoundNames.has(foundCompound.name)) {
                 console.log(`Created compound: ${foundCompound.name} (${foundCompound.symbol})`);
                 this.addCompoundToInventory(foundCompound);
+            } else if (foundCompound && this.createdCompoundNames.has(foundCompound.name)) {
+                this.showAlreadyFormulatedMessage();
             }
             
             this.time.delayedCall(2000, () => {
@@ -273,9 +276,33 @@ export class Start extends Phaser.Scene {
         this.createdCompounds.push(compoundImg);
     }
 
+    showAlreadyFormulatedMessage() {
+        // Change scientist to shock
+        this.scientist.setTexture('shock');
+        
+        // Display already formulated message
+        const alreadyFormulatedImg = this.add.image(1200, 300, 'already_formulated')
+            .setOrigin(0.5)
+            .setScale(0.7)
+            .setDepth(1001);
+        
+        // Remove after 4 seconds
+        this.time.delayedCall(4000, () => {
+            alreadyFormulatedImg.destroy();
+            this.scientist.setTexture('default');
+            this.clearDropZone();
+        });
+    }
+
     showCongratsScreen(compound) {
         // Change scientist to excited
         this.scientist.setTexture('excited');
+        
+        // Pause bubble animations
+        this.bubbleTimer.paused = true;
+        this.bubbles.forEach(bubble => {
+            this.tweens.killTweensOf(bubble);
+        });
         
         // Create fullscreen background with 50% opacity
         const congratsBg = this.add.image(928, 522, 'congrats_bg')
@@ -321,6 +348,7 @@ export class Start extends Phaser.Scene {
             congratsCompound.destroy();
             congratsText.destroy();
             this.scientist.setTexture('default'); // Change back to default
+            this.bubbleTimer.paused = false; // Resume bubble animations
             this.clearDropZone();
         });
         
@@ -331,6 +359,7 @@ export class Start extends Phaser.Scene {
             congratsCompound.destroy();
             congratsText.destroy();
             this.scientist.setTexture('default'); // Change back to default
+            this.bubbleTimer.paused = false; // Resume bubble animations
             this.clearDropZone();
         });
     }
