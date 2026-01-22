@@ -21,6 +21,7 @@ export class Start extends Phaser.Scene {
         this.load.image('congrats_bg', 'assets/congrats_bg.png');
         this.load.image('newCompoundText', 'assets/newCompoundText.png');
         this.load.image('already_formulated', 'assets/speech/already_formulated.png');
+        this.load.image('wrong_formula', 'assets/speech/wrong_formula.png');
 
         // Load element images from chemicals.js
         elements.forEach(element => {
@@ -177,6 +178,8 @@ export class Start extends Phaser.Scene {
                 this.addCompoundToInventory(foundCompound);
             } else if (foundCompound && this.createdCompoundNames.has(foundCompound.name)) {
                 this.showAlreadyFormulatedMessage();
+            } else if (!foundCompound && elementsInZone.length > 0) {
+                this.showWrongFormulaMessage();
             }
             
             this.time.delayedCall(2000, () => {
@@ -274,6 +277,24 @@ export class Start extends Phaser.Scene {
         this.input.setDraggable(compoundImg);
         
         this.createdCompounds.push(compoundImg);
+    }
+
+    showWrongFormulaMessage() {
+        // Change scientist to shock
+        this.scientist.setTexture('shock');
+        
+        // Display wrong formula message
+        const wrongFormulaImg = this.add.image(1200, 300, 'wrong_formula')
+            .setOrigin(0.5)
+            .setScale(0.7)
+            .setDepth(1001);
+        
+        // Remove after 4 seconds
+        this.time.delayedCall(4000, () => {
+            wrongFormulaImg.destroy();
+            this.scientist.setTexture('default');
+            this.clearDropZone();
+        });
     }
 
     showAlreadyFormulatedMessage() {
