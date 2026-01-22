@@ -177,6 +177,7 @@ export class Start extends Phaser.Scene {
             
             if (foundCompound && !this.createdCompoundNames.has(foundCompound.name)) {
                 console.log(`Created compound: ${foundCompound.name} (${foundCompound.symbol})`);
+                this.wrongAttempts = 0; // Reset counter on successful creation
                 this.addCompoundToInventory(foundCompound);
             } else if (foundCompound && this.createdCompoundNames.has(foundCompound.name)) {
                 this.showAlreadyFormulatedMessage();
