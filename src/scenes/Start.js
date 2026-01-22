@@ -208,6 +208,9 @@ export class Start extends Phaser.Scene {
         });
         
         this.scientist = this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.5);
+        
+        // Create green bubbles at the top of the test tube
+        this.createBubbles();
     }
 
     addCompoundToInventory(compound) {
@@ -356,6 +359,60 @@ export class Start extends Phaser.Scene {
                    Object.keys(requiredElements).every(element => 
                        elementCounts[element] === requiredElements[element]
                    );
+        });
+    }
+
+    createBubbles() {
+        this.bubbles = [];
+        
+
+        const testTubeX = 1760;
+        const testTubeY = 580;
+        
+        // Create initial bubbles
+        for (let i = 0; i < 5; i++) {
+            this.createBubble(testTubeX, testTubeY);
+        }
+        
+        // Continuously spawn new bubbles
+        this.bubbleTimer = this.time.addEvent({
+            delay: 800,
+            callback: () => this.createBubble(testTubeX, testTubeY),
+            loop: true
+        });
+    }
+    
+    createBubble(x, y) {
+        // Create bubble using graphics
+        const bubble = this.add.graphics();
+        const size = Phaser.Math.Between(8, 16);
+        
+        bubble.fillStyle(0x00ff44, 0.7); // Green with transparency
+        bubble.fillCircle(0, 0, size);
+        bubble.lineStyle(2, 0x00aa22, 0.8);
+        bubble.strokeCircle(0, 0, size);
+        
+        // Random starting position around test tube top
+        bubble.x = x + Phaser.Math.Between(-15, 15);
+        bubble.y = y + Phaser.Math.Between(-10, 10);
+        
+        this.bubbles.push(bubble);
+        
+        // Animate bubble floating up and fading
+        this.tweens.add({
+            targets: bubble,
+            y: bubble.y - Phaser.Math.Between(100, 200),
+            x: bubble.x + Phaser.Math.Between(-30, 30),
+            alpha: 0,
+            scaleX: 0.3,
+            scaleY: 0.3,
+            duration: Phaser.Math.Between(2000, 3500),
+            ease: 'Power2',
+            onComplete: () => {
+                const index = this.bubbles.indexOf(bubble);
+                if (index > -1) this.bubbles.splice(index, 1);
+                bubble.destroy();
+            }
         });
     }
 
