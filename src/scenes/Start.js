@@ -207,7 +207,7 @@ export class Start extends Phaser.Scene {
             });
         });
         
-        this.scientist = this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.9);
+        this.scientist = this.add.image(1400, 1000, 'default').setOrigin(0, 1).setScale(0.5);
     }
 
     addCompoundToInventory(compound) {
