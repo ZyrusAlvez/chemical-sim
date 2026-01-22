@@ -9,7 +9,7 @@ export class ChemicalElement {
 }
 
 export class Compound {
-  constructor(name, symbol, state, category, energySource, metalReactivity, scale, property, imagePath, textureKey) {
+  constructor(name, symbol, state, category, energySource, metalReactivity, scale, property, imagePath, textureKey, hint) {
     this.name = name;
     this.symbol = symbol;
     this.state = state;
@@ -20,6 +20,7 @@ export class Compound {
     this.property = property;
     this.imagePath = imagePath;
     this.textureKey = textureKey;
+    this.hint = hint;
   }
 }
 
@@ -37,14 +38,14 @@ const nitrogen = new ChemicalElement("Nitrogen", "N", "gas", "assets/elements/ni
 const copper = new ChemicalElement("Copper", "Cu", "solid", "assets/elements/copper.png", "copper");
 const sulfur = new ChemicalElement("Sulfur", "S", "solid", "assets/elements/sulfur.png", "sulfur"); 
 
-const water = new Compound("Water", "H2O", "liquid", "solvent", "electricity (high)", "", 0.1, new Map([[hydrogen, 2], [oxygen, 1]]), "assets/compound/water.png", "water");
-const hydrochloricAcid = new Compound("Hydrochloric Acid", "HCl", "liquid", "acid", "", "", 0.08, new Map([[hydrogen, 1], [chlorine, 1]]), "assets/compound/hydrochloricAcid.png", "hydrochloricAcid");
-const sodiumHydroxide = new Compound("Sodium Hydroxide", "NaOH", "liquid", "base", "", "", 0.09, new Map([[sodium, 1], [oxygen, 1], [hydrogen, 1]]), "assets/compound/sodiumHydroxide.png", "sodiumHydroxide");
-const silverNitrate = new Compound("Silver Nitrate", "AgNO3", "liquid", "salt solution", "", "", 0.09, new Map([[silver, 1], [nitrogen, 1], [oxygen, 3]]), "assets/compound/silverNitrate.png", "silverNitrate");
-const sodiumChloride = new Compound("Sodium Chloride", "NaCl", "solid", "salt solution", "", "", 0.18, new Map([[sodium, 1], [chlorine, 1]]), "assets/compound/sodiumChloride.png", "sodiumChloride");
-const copperSulfate = new Compound("Copper (II) Sulfate", "CuSO4", "liquid", "salt solution", "", "", 0.08, new Map([[copper, 1], [sulfur, 1], [oxygen, 4]]), "assets/compound/copperSulfate.png", "copperSulfate");
-const methane = new Compound("Methane", "CH4", "gas", "fuel", "", "", 0.1, new Map([[carbon, 1], [hydrogen, 4]]), "assets/compound/methane.png", "methane");
-const calciumCarbonate = new Compound("Calcium Carbonate", "CaCO3", "solid", "carbonate", "heat (high)", "", 0.08, new Map([[calcium, 1], [carbon, 1], [oxygen, 3]]), "assets/compound/calciumCarbonate.png", "calciumCarbonate");
+const water = new Compound("Water", "H2O", "liquid", "solvent", "electricity (high)", "", 0.1, new Map([[hydrogen, 2], [oxygen, 1]]), "assets/compound/water.png", "water", "assets/speech/hint/water.png");
+const hydrochloricAcid = new Compound("Hydrochloric Acid", "HCl", "liquid", "acid", "", "", 0.08, new Map([[hydrogen, 1], [chlorine, 1]]), "assets/compound/hydrochloricAcid.png", "hydrochloricAcid", "assets/speech/hint/hydrochloricAcid.png");
+const sodiumHydroxide = new Compound("Sodium Hydroxide", "NaOH", "liquid", "base", "", "", 0.09, new Map([[sodium, 1], [oxygen, 1], [hydrogen, 1]]), "assets/compound/sodiumHydroxide.png", "sodiumHydroxide", "assets/speech/hint/sodiumHydroxide.png");
+const silverNitrate = new Compound("Silver Nitrate", "AgNO3", "liquid", "salt solution", "", "", 0.09, new Map([[silver, 1], [nitrogen, 1], [oxygen, 3]]), "assets/compound/silverNitrate.png", "silverNitrate", "assets/speech/hint/silverNitrate.png");
+const sodiumChloride = new Compound("Sodium Chloride", "NaCl", "solid", "salt solution", "", "", 0.18, new Map([[sodium, 1], [chlorine, 1]]), "assets/compound/sodiumChloride.png", "sodiumChloride", "assets/speech/hint/sodiumChloride.png");
+const copperSulfate = new Compound("Copper (II) Sulfate", "CuSO4", "liquid", "salt solution", "", "", 0.08, new Map([[copper, 1], [sulfur, 1], [oxygen, 4]]), "assets/compound/copperSulfate.png", "copperSulfate", "assets/speech/hint/copperSulfate.png");
+const methane = new Compound("Methane", "CH4", "gas", "fuel", "", "", 0.1, new Map([[carbon, 1], [hydrogen, 4]]), "assets/compound/methane.png", "methane", "assets/speech/hint/methane.png");
+const calciumCarbonate = new Compound("Calcium Carbonate", "CaCO3", "solid", "carbonate", "heat (high)", "", 0.08, new Map([[calcium, 1], [carbon, 1], [oxygen, 3]]), "assets/compound/calciumCarbonate.png", "calciumCarbonate", "assets/speech/hint/calciumCarbonate.png");
 
 export const elements = [
   magnesium, sodium, iron, carbon, oxygen, hydrogen,

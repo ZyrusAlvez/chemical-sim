@@ -31,6 +31,7 @@ export class Start extends Phaser.Scene {
         // Load compound images from chemicals.js
         compounds.forEach(compound => {
             this.load.image(compound.textureKey, compound.imagePath);
+            this.load.image(compound.textureKey + '_hint', compound.hint);
         });
     }
 
@@ -50,6 +51,7 @@ export class Start extends Phaser.Scene {
         this.nextSlotIndex = 0;
         this.createdCompounds = [];
         this.createdCompoundNames = new Set(); // Track created compound names
+        this.wrongAttempts = 0; // Track wrong formula attempts
 
         const elements = [
             {name: 'hydrogen', x: 70, y: 430, scale: 0.3, originX: 0, originY: 1},
@@ -179,7 +181,13 @@ export class Start extends Phaser.Scene {
             } else if (foundCompound && this.createdCompoundNames.has(foundCompound.name)) {
                 this.showAlreadyFormulatedMessage();
             } else if (!foundCompound && elementsInZone.length > 0) {
-                this.showWrongFormulaMessage();
+                this.wrongAttempts++;
+                if (this.wrongAttempts >= 3) {
+                    this.showClosestHint(elementsInZone);
+                    this.wrongAttempts = 0; // Reset counter
+                } else {
+                    this.showWrongFormulaMessage();
+                }
             }
             
             this.time.delayedCall(2000, () => {
@@ -277,6 +285,55 @@ export class Start extends Phaser.Scene {
         this.input.setDraggable(compoundImg);
         
         this.createdCompounds.push(compoundImg);
+    }
+
+    showClosestHint(elementsInZone) {
+        // Disable input
+        this.input.enabled = false;
+        
+        // Change scientist to hint
+        this.scientist.setTexture('hint');
+        
+        // Count elements in drop zone
+        const elementCounts = {};
+        elementsInZone.forEach(element => {
+            elementCounts[element] = (elementCounts[element] || 0) + 1;
+        });
+        
+        // Find compound with most matching elements that hasn't been created
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        compounds.forEach(compound => {
+            if (!this.createdCompoundNames.has(compound.name)) {
+                let score = 0;
+                for (let [element, count] of compound.property) {
+                    const elementName = element.name.toLowerCase();
+                    if (elementCounts[elementName]) {
+                        score += Math.min(elementCounts[elementName], count);
+                    }
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = compound;
+                }
+            }
+        });
+        
+        // Display hint message for best match or random if no match
+        const hintCompound = bestMatch || compounds.find(c => !this.createdCompoundNames.has(c.name));
+        const hintImg = this.add.image(1200, 300, hintCompound.textureKey + '_hint')
+            .setOrigin(0.5)
+            .setScale(0.7)
+            .setDepth(1001);
+        
+        // Remove after 4 seconds
+        this.time.delayedCall(4000, () => {
+            hintImg.destroy();
+            this.scientist.setTexture('default');
+            this.input.enabled = true; // Re-enable input
+            this.clearDropZone();
+        });
     }
 
     showWrongFormulaMessage() {
