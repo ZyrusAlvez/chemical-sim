@@ -20,28 +20,59 @@ export class ReactionSystem {
         }
     }
 
-    // Find matching reaction based on reactant keys
-    findReaction(reactantKeys) {
+    // Find matching reaction based on reactant keys and active energy
+    findReaction(reactantKeys, activeEnergy) {
         // Normalize reactant keys to symbols
         const inputSymbols = this.getSymbolsFromKeys(reactantKeys);
+        console.log('Looking for reaction with inputs:', inputSymbols, 'Energy:', activeEnergy);
 
-        console.log('Looking for reaction with inputs:', inputSymbols);
+        const matchingReactions = [];
 
         for (const reaction of this.reactions) {
             const reactionSymbols = reaction.reactants.map(r => this.normalizeSymbol(r)).sort();
-            const inputSymbolsSorted = [...inputSymbols].sort(); // Create copy before sorting
-
-            console.log('Comparing:', inputSymbolsSorted, 'with reaction:', reactionSymbols);
+            const inputSymbolsSorted = [...inputSymbols].sort();
 
             // Check if arrays match
             if (this.arraysEqual(reactionSymbols, inputSymbolsSorted)) {
-                console.log('Match found:', reaction.equation);
-                return reaction;
+                matchingReactions.push(reaction);
             }
         }
 
-        console.log('No reaction found for:', inputSymbols);
-        return null;
+        if (matchingReactions.length === 0) {
+            console.log('No reaction found for:', inputSymbols);
+            return null;
+        }
+
+        // Sort matches by energy priority:
+        // 1. Exact Energy Match (Requires Energy === Active Energy)
+        // 2. Passive Match (Requires None, Active is whatever)
+        // 3. Mismatch (Will fail validation later, but returning allows message)
+
+        matchingReactions.sort((a, b) => {
+            const reqA = this.getRequiredEnergy(a);
+            const reqB = this.getRequiredEnergy(b);
+
+            const aMatches = reqA === activeEnergy;
+            const bMatches = reqB === activeEnergy;
+
+            if (aMatches && !bMatches) return -1;
+            if (!aMatches && bMatches) return 1;
+
+            // If neither matches perfectly, prefer the one that requires *Active* energy over Null?
+            // No, prefers Null over Wrong Energy.
+            // But if one is Null (Synthesis) and one is Specific (Combustion), and Active matches Specific.
+            // Then aMatches=true/false handles it.
+
+            // If activeEnergy is NULL:
+            // Combustion (req Heat) -> aMatches=false.
+            // Synthesis (req Null) -> reqA=null. active=null. aMatches=true.
+            // So Synthesis wins.
+
+            return 0;
+        });
+
+        console.log('Selected reaction:', matchingReactions[0].equation);
+        return matchingReactions[0];
     }
 
     // Convert texture keys to chemical symbols
@@ -90,12 +121,14 @@ export class ReactionSystem {
     validateEnergy(reaction, activeEnergy) {
         if (!reaction.energy_source) return true; // No energy required
 
-        // Map energy source to button types
+        // Map energy source to button types (Active Energy is snake_case)
         const energyMap = {
             'Initial Heat': 'initial_heat',
+            'initial_heat': 'initial_heat', // Support raw key
             'Electricity High': 'electricity',
             'Electricity High (Molten)': 'electricity',
-            'High Heat': 'high_heat'
+            'High Heat': 'high_heat',
+            'high_heat': 'high_heat'
         };
 
         const requiredEnergy = energyMap[reaction.energy_source];

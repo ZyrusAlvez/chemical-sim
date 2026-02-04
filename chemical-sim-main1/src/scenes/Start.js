@@ -96,11 +96,17 @@ export class Start extends Phaser.Scene {
         // Create drop zone (combine machine area)
         this.dropZoneGraphics = this.add.graphics();
         this.dropZoneGraphics.fillStyle(0xff0000, 0.3);
-        this.dropZone = this.add.zone(1070, 685, 170, 150).setRectangleDropZone(170, 150);
+        this.dropZone = this.add.zone(1070, 685, 300, 250).setRectangleDropZone(300, 250);
 
         this.elementsInZone = [];
 
         // Drag events
+        this.input.on('dragstart', (pointer, gameObject) => {
+            gameObject.setAlpha(0.7);
+            gameObject.originalDepth = gameObject.depth;
+            gameObject.setDepth(1000); // Bring to top
+        });
+
         this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
             gameObject.x = dragX;
             gameObject.y = dragY;
@@ -120,7 +126,7 @@ export class Start extends Phaser.Scene {
 
             const copy = this.add.image(machineCenterX + offsetX, machineCenterY + offsetY, gameObject.texture.key)
                 .setOrigin(0.5, 0.5)
-                .setScale(0.08);
+                .setScale(0.15); // Bigger size in machine
             this.elementsInZone.push(copy);
             copy.inDropZone = true;
 
@@ -143,6 +149,8 @@ export class Start extends Phaser.Scene {
         });
 
         this.input.on('dragend', (pointer, gameObject) => {
+            gameObject.setAlpha(1);
+            if (gameObject.originalDepth) gameObject.setDepth(gameObject.originalDepth);
             if (!gameObject.inDropZone) {
                 this.tweens.add({
                     targets: gameObject,
@@ -283,10 +291,12 @@ export class Start extends Phaser.Scene {
         }
 
         const compoundText = this.add.text(x, y + 50, displayText, {
-            fontSize: '16px',
-            fill: '#FFFFFF',
+            fontSize: '18px',
+            fill: '#ffffff',
+            fontFamily: 'Verdana',
+            fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 2,
+            strokeThickness: 5,
             align: 'center'
         }).setOrigin(0.5, 0);
 
@@ -450,9 +460,11 @@ export class Start extends Phaser.Scene {
         const imageHeight = congratsCompound.displayHeight;
         const congratsText = this.add.text(928, congratsCompound.y + (imageHeight / 2) + 30, compound.name, {
             fontSize: '48px',
-            fill: '#FFFFFF',
+            fill: '#ffffff',
+            fontFamily: 'Verdana',
+            fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 4,
+            strokeThickness: 6,
             align: 'center'
         }).setOrigin(0.5).setDepth(1001);
 

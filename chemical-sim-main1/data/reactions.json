@@ -136,6 +136,23 @@
         "animation_key": "bubble"
     },
     {
+        "type": "combustion",
+        "reactants": [
+            "Mg",
+            "O",
+            "O"
+        ],
+        "products": [
+            "MgO_c"
+        ],
+        "equation": "2Mg + O2 → 2MgO",
+        "energy_source": "initial_heat",
+        "visual_effect": "Bright Flame",
+        "product_effect": "bright_flame",
+        "animation_key": "brightFlame",
+        "hint": "Magnesium element + oxygen atoms. Apply Initial Heat."
+    },
+    {
         "type": "synthesis",
         "reactants": [
             "Mg",
@@ -146,7 +163,7 @@
             "MgO"
         ],
         "equation": "2Mg + O2 → 2MgO",
-        "energy_source": "Initial Heat",
+        "energy_source": null,
         "visual_effect": "Intense White Flash",
         "product_effect": "glow",
         "animation_key": "initialHeat",
@@ -315,7 +332,7 @@
         "equation": "Fe + CuSO4 → FeSO4 + Cu",
         "energy_source": null,
         "visual_effect": "Iron turns Reddish/Brown",
-        "product_effect": "glow",
+        "product_effect": "rust_glow",
         "animation_key": "colorChange",
         "hint": "Iron displaces copper from the sulfate solution."
     },
@@ -332,7 +349,7 @@
         "equation": "Zn + CuSO4 → ZnSO4 + Cu",
         "energy_source": null,
         "visual_effect": "Solution fades Blue → Clear",
-        "product_effect": "fade",
+        "product_effect": "solution_fade",
         "animation_key": "solutionFade",
         "hint": "Zinc is more reactive than copper."
     },
@@ -349,7 +366,7 @@
         "equation": "AgNO3 + NaCl → AgCl(s) + NaNO3",
         "energy_source": null,
         "visual_effect": "Milk-white Precipitate",
-        "product_effect": "crystals",
+        "product_effect": "precipitate_milk",
         "animation_key": "precipitate",
         "hint": "Mix silver nitrate and sodium chloride solutions."
     },
@@ -366,7 +383,7 @@
         "equation": "AgNO3 + HCl → AgCl(s) + HNO3",
         "energy_source": null,
         "visual_effect": "White Cloudy Particles",
-        "product_effect": "crystals",
+        "product_effect": "cloudy_white",
         "animation_key": "cloudyParticles",
         "hint": "Silver reacts with chloride to form a precipitate."
     },
@@ -392,8 +409,6 @@
         "reactants": [
             "CH4",
             "O",
-            "O",
-            "O",
             "O"
         ],
         "products": [
@@ -403,25 +418,8 @@
         "equation": "CH4 + 2O2 → CO2 + 2H2O",
         "energy_source": null,
         "visual_effect": "Blue Flame Animation",
-        "product_effect": "smoke",
+        "product_effect": "blue_flame",
         "animation_key": "blueFlame",
-        "hint": "Methane burns with oxygen. Drag CH4 compound + 4 O atoms."
-    },
-    {
-        "type": "combustion",
-        "reactants": [
-            "Mg",
-            "O",
-            "O"
-        ],
-        "products": [
-            "MgO"
-        ],
-        "equation": "2Mg + O2 → 2MgO",
-        "energy_source": "Initial Heat",
-        "visual_effect": "Bright Flame",
-        "product_effect": "smoke",
-        "animation_key": "brightFlame",
-        "hint": "Magnesium element + oxygen atoms. Apply Initial Heat."
+        "hint": "Methane burns with oxygen. Drag CH4 compound + 2 O atoms."
     }
 ]

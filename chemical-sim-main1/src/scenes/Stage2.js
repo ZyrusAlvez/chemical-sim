@@ -33,18 +33,33 @@ export class Stage2 extends Phaser.Scene {
         this.load.image('btn_highheat_pressed', 'assets/btn_highheat_pressed.png');
 
         // Load hint speech bubbles (all files from assets/speech/hint/)
-        this.load.image('cao2', 'assets/speech/hint/cao2.png');
-        this.load.image('mgo2flame', 'assets/speech/hint/mgo2flame.png');
-        this.load.image('mgcl2', 'assets/speech/hint/mgcl2.png');
+        this.load.image('cao2', 'assets/speech/hint/cao2.png?v=999');
+        this.load.image('mgo2flame', 'assets/speech/hint/mgo2flame.png?v=999');
+        this.load.image('mgcl2', 'assets/speech/hint/mgcl2.png?v=999');
         this.load.image('water', 'assets/speech/hint/water.png');
+        // Load compound images and hints dynamically from chemicals.js
+        if (typeof compounds !== 'undefined') {
+            compounds.forEach(compound => {
+                // FORCE SKIP NaCl here so we can load it manually below with explicit path
+                if (compound.textureKey === 'sodiumChloride') return;
+
+                // Ensure we don't overwrite if manually loaded, but for hints we want the chemicals.js version
+                // Actually Stage 2 relies on specific keys.
+                // safer to load hint with _hint suffix like Start.js
+                if (compound.hint) {
+                    this.load.image(compound.textureKey + '_hint', compound.hint);
+                }
+            });
+        }
+
+        // Force override for NaCl Hint - Use cache buster to ensure update
+        this.load.image('sodiumChloride_hint', 'assets/speech/hint/nacl.png?v=999');
+
+        // Manual loads for specific reaction hints not in compounds list (if any)
         this.load.image('h2oelectric', 'assets/speech/hint/h2oelectric.png');
-        this.load.image('calciumCarbonate', 'assets/speech/hint/calciumCarbonate.png');
-        this.load.image('caco3heat', 'assets/speech/hint/caco3heat.png');
-        this.load.image('sodiumChloride', 'assets/speech/hint/sodiumChloride.png');
-        this.load.image('methane', 'assets/speech/hint/methane.png');
-        this.load.image('ch4o2', 'assets/speech/hint/ch4o2.png');
-        this.load.image('hydrochloricAcid', 'assets/speech/hint/hydrochloricAcid.png');
-        this.load.image('copperSulfate', 'assets/speech/hint/copperSulfate.png');
+        this.load.image('ch4o2_hint', 'assets/speech/hint/ch4o2.png?v=999'); // Force load
+        this.load.image('copperSulfate_hint', 'assets/speech/hint/copperSulfate.png'); // Renamed to avoid collision
+        this.load.image('fecuso4', 'assets/speech/hint/fecuso4.png');
         this.load.image('silverNitrate', 'assets/speech/hint/silverNitrate.png');
         this.load.image('sodiumHydroxide', 'assets/speech/hint/sodiumHydroxide.png');
         this.load.image('znhcl', 'assets/speech/hint/znhcl.png');
@@ -98,13 +113,51 @@ export class Stage2 extends Phaser.Scene {
         this.initialHeatButtonPressed = false;
         this.highHeatButtonPressed = false;
         this.activeEnergySource = null;
-        this.compoundSlots = [{ x: 415, y: 660 }, { x: 515, y: 660 }, { x: 115, y: 790 }, { x: 215, y: 790 }, { x: 315, y: 790 }, { x: 415, y: 790 }, { x: 515, y: 790 }];
+        this.activeEnergySource = null;
+
+        // Generate Compound Slots - RESTORED ORIGINAL LAYOUT + NEW ROW
+        // Row 1: 2 items (Right side)
+        // Row 2: 5 items (Full width)
+        // Row 3: 5 items (New request)
+        this.compoundSlots = [
+            { x: 415, y: 660 }, { x: 515, y: 660 }, // Original Row 1
+            { x: 115, y: 790 }, { x: 215, y: 790 }, { x: 315, y: 790 }, { x: 415, y: 790 }, { x: 515, y: 790 }, // Original Row 2
+            { x: 115, y: 910 }, { x: 215, y: 910 }, { x: 315, y: 910 }, { x: 415, y: 910 }, { x: 515, y: 910 }  // New Row 3
+        ];
+
+        this.inventoryPage = 0;
+        this.itemsPerPage = this.compoundSlots.length;
+
         this.nextSlotIndex = 0;
         this.createdCompounds = [];
         this.wrongAttempts = 0;
 
-        // Load existing compounds from global inventory
-        this.loadExistingCompounds();
+        // Pagination Buttons - Positioned around the grid
+        this.pageLeftBtn = this.add.text(50, 850, '◀', {
+            fontSize: '48px', fill: '#ffffff'
+        }).setOrigin(0.5).setInteractive({ cursor: 'pointer' }).setVisible(false);
+
+        this.pageRightBtn = this.add.text(600, 850, '▶', {
+            fontSize: '48px', fill: '#ffffff'
+        }).setOrigin(0.5).setInteractive({ cursor: 'pointer' }).setVisible(false);
+
+        this.pageLeftBtn.on('pointerdown', () => {
+            if (this.inventoryPage > 0) {
+                this.inventoryPage--;
+                this.renderInventory();
+            }
+        });
+
+        this.pageRightBtn.on('pointerdown', () => {
+            const total = compoundInventory.getCreatedCompounds().length;
+            if ((this.inventoryPage + 1) * this.itemsPerPage < total) {
+                this.inventoryPage++;
+                this.renderInventory();
+            }
+        });
+
+        // Load existing compounds using pagination render
+        this.renderInventory();
 
         const elementPositions = [
             { name: 'hydrogen', x: 70, y: 430, scale: 0.3, originX: 0, originY: 1 },
@@ -130,7 +183,8 @@ export class Stage2 extends Phaser.Scene {
             this.input.setDraggable(img);
         });
 
-        this.dropZone = this.add.zone(1070, 685, 170, 150).setRectangleDropZone(170, 150);
+        // Increased drop zone size for better usability
+        this.dropZone = this.add.zone(1070, 685, 300, 250).setRectangleDropZone(300, 250);
         this.elementsInZone = [];
 
         this.setupDragAndDrop();
@@ -209,11 +263,13 @@ export class Stage2 extends Phaser.Scene {
         });
 
         this.input.on('drop', (pointer, gameObject, dropZone) => {
-            // Position items within the beaker bounds
+            // Position items within the beaker bounds - Expanded range to fix cramping
             const beakerCenterX = 1070;
             const beakerCenterY = 685;
-            const offsetX = Phaser.Math.Between(-40, 40);
-            const offsetY = Phaser.Math.Between(-30, 30);
+            // Widen the spread (was -40,40)
+            const offsetX = Phaser.Math.Between(-80, 80);
+            // Slightly more vertical spread (was -30,30)
+            const offsetY = Phaser.Math.Between(-40, 50);
 
             const copy = this.add.image(beakerCenterX + offsetX, beakerCenterY + offsetY, gameObject.texture.key)
                 .setOrigin(0.5, 0.5)
@@ -300,7 +356,7 @@ export class Stage2 extends Phaser.Scene {
             const elementsInZone = this.elementsInZone.map(element => element.texture.key);
 
             // Find matching reaction
-            const reaction = this.reactionSystem.findReaction(elementsInZone);
+            const reaction = this.reactionSystem.findReaction(elementsInZone, this.activeEnergySource);
 
             if (!reaction && elementsInZone.length > 0) {
                 // No valid reaction found
@@ -556,18 +612,49 @@ export class Stage2 extends Phaser.Scene {
     addCompoundToInventory(compound) {
         compoundInventory.addCompound(compound.name);
         this.showCongratsScreen(compound);
-        this.displayCompoundInInventory(compound);
+        // Refresh entire inventory to handle pagination/sorting
+        this.renderInventory();
     }
 
-    loadExistingCompounds() {
-        const existingCompounds = compoundInventory.getCreatedCompounds();
+    // New method to render full inventory page
+    renderInventory() {
+        this.clearInventoryUI();
 
-        existingCompounds.forEach(compoundName => {
+        const allCompounds = compoundInventory.getCreatedCompounds();
+        // Sort if needed? No, chronological is fine.
+
+        const start = this.inventoryPage * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        const pageItems = allCompounds.slice(start, end);
+
+        this.nextSlotIndex = 0;
+
+        pageItems.forEach(compoundName => {
             const compound = compounds.find(c => c.name === compoundName);
             if (compound) {
                 this.displayCompoundInInventory(compound);
             }
         });
+
+        this.updatePaginationButtons(allCompounds.length);
+    }
+
+    clearInventoryUI() {
+        this.createdCompounds.forEach(item => {
+            if (item.labelText) item.labelText.destroy();
+            item.destroy();
+        });
+        this.createdCompounds = [];
+    }
+
+    updatePaginationButtons(totalCount) {
+        this.pageLeftBtn.setVisible(this.inventoryPage > 0);
+        this.pageRightBtn.setVisible((this.inventoryPage + 1) * this.itemsPerPage < totalCount);
+    }
+
+    loadExistingCompounds() {
+        // Deprecated, use renderInventory()
+        this.renderInventory();
     }
 
     displayCompoundInInventory(compound) {
@@ -598,10 +685,12 @@ export class Stage2 extends Phaser.Scene {
         }
 
         const compoundText = this.add.text(x, y + 50, displayText, {
-            fontSize: '16px',
-            fill: '#FFFFFF',
+            fontSize: '18px', // Larger
+            fill: '#ffffff',
+            fontFamily: 'Verdana', // Strict
+            fontStyle: 'bold',     // Bold
             stroke: '#000000',
-            strokeThickness: 2,
+            strokeThickness: 5,    // Thicker
             align: 'center'
         }).setOrigin(0.5, 0);
 
@@ -651,9 +740,10 @@ export class Stage2 extends Phaser.Scene {
         });
 
         const hintCompound = bestMatch || compounds.find(c => !compoundInventory.hasCompound(c.name));
-        const hintImg = this.add.image(1200, 300, hintCompound.textureKey + '_hint')
+        // Position hint near scientist (speech bubble) - leveled with face at Y=380
+        const hintImg = this.add.image(1350, 380, hintCompound.textureKey + '_hint')
             .setOrigin(0.5)
-            .setScale(0.7)
+            .setScale(0.5)
             .setDepth(1001);
 
         this.time.delayedCall(4000, () => {
@@ -789,6 +879,13 @@ export class Stage2 extends Phaser.Scene {
         const singleElement = elementsInBeaker[0];
         console.log('Single element:', singleElement);
 
+        // Special Override: Completely suppress hint for Chlorine (Cl)
+        // This matches Stage 1 behavior where Cl drag is silent.
+        if (singleElement === 'chlorine') {
+            this.hideHint();
+            return;
+        }
+
         // Find reactions that could use this element
         for (const reaction of this.reactionSystem.reactions) {
             if (!reaction.hint) continue;
@@ -859,26 +956,33 @@ export class Stage2 extends Phaser.Scene {
             'CH4 + 2O2 → CO2 + 2H2O': 'ch4o2',
             '2H2O → 2H2 + O2': 'h2oelectric',
             'CaCO3 → CaO + CO2': 'caco3heat',
-            '2NaCl → 2Na + Cl2': 'sodiumChloride',
+            '2NaCl → 2Na + Cl2': 'sodiumChloride_hint',
             'Zn + 2HCl → ZnCl2 + H2': 'znhcl',
             'Mg + 2HCl → MgCl2 + H2': 'mghcl',
-            'Fe + CuSO4 → FeSO4 + Cu': 'copperSulfate',
+            'Fe + CuSO4 → FeSO4 + Cu': 'fecuso4',
             'Zn + CuSO4 → ZnSO4 + Cu': 'zncuso4',
             'AgNO3 + NaCl → AgCl(s) + NaNO3': 'agno3nacl',
             'AgNO3 + HCl → AgCl(s) + HNO3': 'agno3hcl',
-            'HCl + NaOH → NaCl + H2O': 'hclnaoh'
+            'HCl + NaOH → NaCl + H2O': 'hclnaoh',
+            'CH4 + 2O2 → CO2 + 2H2O': 'ch4o2_hint'
         };
 
         const hintImageName = hintImageMap[reaction.equation];
+
         if (!hintImageName) {
             console.log('No hint image for this reaction:', reaction.equation);
             return; // Don't show hint if no image exists
         }
 
-        // Display hint image at same position as other speech bubbles
-        this.currentHintImage = this.add.image(1200, 300, hintImageName)
+        // Special override: User requested NO hint for Chlorine
+        if (reaction.equation.includes('2Na + Cl2')) {
+            return;
+        }
+
+        // Display hint image near scientist like a speech bubble - leveled with face at Y=380
+        this.currentHintImage = this.add.image(1350, 380, hintImageName)
             .setOrigin(0.5)
-            .setScale(0.4)  // Reduced from 0.7 to make hints smaller
+            .setScale(0.5)  // Slightly larger for speech bubble effect
             .setDepth(1001)
             .setAlpha(0);
 
@@ -941,8 +1045,10 @@ export class Stage2 extends Phaser.Scene {
 
             this.time.delayedCall(2500, callback);
 
-        } else if (animKey === 'initialHeat' || animKey === 'brightFlame') {
+        } else if (animKey === 'initialHeat' || animKey === 'brightFlame' || animKey === 'blueFlame') {
             // Flash/Flame effect
+            const isBlue = animKey === 'blueFlame';
+            const flameColor = isBlue ? 0x0088FF : 0xFFAA00; // Blue or Orange
 
             const flash = this.add.rectangle(beakerX, beakerY, 200, 200, 0xFFFFFF, 1)
                 .setDepth(100);
@@ -951,7 +1057,7 @@ export class Stage2 extends Phaser.Scene {
                 targets: flash,
                 alpha: 0,
                 scale: 2,
-                duration: 1000,
+                duration: 800, // Faster (was 1000)
                 onComplete: () => flash.destroy()
             });
 
@@ -962,7 +1068,7 @@ export class Stage2 extends Phaser.Scene {
                         beakerX + Phaser.Math.Between(-30, 30),
                         beakerY + Phaser.Math.Between(-20, 20),
                         Phaser.Math.Between(8, 20),
-                        0xFFAA00,
+                        flameColor,
                         0.8
                     ).setDepth(100);
 
@@ -970,13 +1076,13 @@ export class Stage2 extends Phaser.Scene {
                         targets: flame,
                         y: beakerY - 150,
                         alpha: 0,
-                        duration: 800,
+                        duration: 600, // Faster (was 800)
                         onComplete: () => flame.destroy()
                     });
                 });
             }
 
-            this.time.delayedCall(2000, callback);
+            this.time.delayedCall(1200, callback); // Faster (was 2000)
 
         } else if (animKey === 'highHeat') {
             // High heat with gas release
@@ -1015,6 +1121,84 @@ export class Stage2 extends Phaser.Scene {
 
             this.time.delayedCall(2200, callback);
 
+        } else if (animKey === 'solutionFade') {
+            // Solution fades Blue -> Clear (e.g. Zn + CuSO4)
+            // Create a blue circle representing the solution
+            const solution = this.add.circle(beakerX, beakerY, 80, 0x3498db, 0.6)
+                .setDepth(100);
+
+            this.tweens.add({
+                targets: solution,
+                alpha: 0,
+                duration: 1000,
+                onComplete: () => solution.destroy()
+            });
+
+            this.time.delayedCall(1200, callback);
+
+        } else if (animKey === 'precipitate') {
+            // Milk-white Precipitate (AgNO3 + NaCl)
+            const particles = [];
+            for (let i = 0; i < 30; i++) {
+                const p = this.add.circle(
+                    beakerX + Phaser.Math.Between(-40, 40),
+                    beakerY + Phaser.Math.Between(-30, 30),
+                    Phaser.Math.Between(3, 8),
+                    0xFFFFFF,
+                    0.9
+                ).setDepth(100);
+                particles.push(p);
+
+                this.tweens.add({
+                    targets: p,
+                    y: beakerY + 50 + Phaser.Math.Between(-10, 10), // Fall down slightly
+                    alpha: 0.2, // Fade out partially
+                    duration: 1500,
+                    ease: 'Quad.easeOut',
+                    onComplete: () => p.destroy()
+                });
+            }
+            this.time.delayedCall(1500, callback);
+
+        } else if (animKey === 'cloudyParticles') {
+            // White Cloudy Particles (AgNO3 + HCl)
+            const particles = [];
+            for (let i = 0; i < 25; i++) {
+                const cloud = this.add.circle(
+                    beakerX + Phaser.Math.Between(-50, 50),
+                    beakerY + Phaser.Math.Between(-40, 40),
+                    Phaser.Math.Between(10, 20),
+                    0xEEEEEE,
+                    0.6 // Semi-transparent cloud
+                ).setDepth(100);
+                particles.push(cloud);
+
+                this.tweens.add({
+                    targets: cloud,
+                    scale: 1.5,
+                    alpha: 0,
+                    duration: 1800,
+                    ease: 'Sine.easeInOut',
+                    onComplete: () => cloud.destroy()
+                });
+            }
+            this.time.delayedCall(1500, callback);
+
+        } else if (animKey === 'colorChange') {
+            // Color change effect (e.g. Fe + CuSO4) - Rust/Brown
+            const glow = this.add.circle(beakerX, beakerY, 80, 0xD45500, 0.6)
+                .setDepth(100);
+
+            this.tweens.add({
+                targets: glow,
+                scale: 2.5,
+                alpha: 0,
+                duration: 800, // Fast fade
+                onComplete: () => glow.destroy()
+            });
+
+            this.time.delayedCall(1000, callback); // Fast callback
+
         } else {
             // Default effect - simple glow
 
@@ -1025,11 +1209,11 @@ export class Stage2 extends Phaser.Scene {
                 targets: glow,
                 scale: 2,
                 alpha: 0,
-                duration: 1500,
+                duration: 800, // Faster (was 1500)
                 onComplete: () => glow.destroy()
             });
 
-            this.time.delayedCall(1800, callback);
+            this.time.delayedCall(1000, callback); // Faster (was 1800)
         }
     }
 
@@ -1109,6 +1293,7 @@ export class Stage2 extends Phaser.Scene {
         const equationText = this.add.text(928, 380, reaction.equation, {
             fontSize: '44px',
             fill: '#ecf0f1',
+            fontFamily: 'Verdana, sans-serif',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4,
@@ -1116,8 +1301,9 @@ export class Stage2 extends Phaser.Scene {
             padding: { x: 30, y: 20 }
         }).setOrigin(0.5).setDepth(1001);
 
+
         // Products
-        const productsStr = reaction.products.join(' + ');
+        const productsStr = reaction.products.map(p => p.replace(/_c$/, '')).join(' + ');
         const productsText = this.add.text(928, 500, `Products: ${productsStr}`, {
             fontSize: '38px',
             fill: '#2ecc71',
@@ -1349,6 +1535,7 @@ export class Stage2 extends Phaser.Scene {
         const title = this.add.text(x, y - 300, 'Reaction Journal', {
             fontSize: '42px',
             fill: '#ffffff',
+            fontFamily: 'Verdana',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
@@ -1430,7 +1617,7 @@ export class Stage2 extends Phaser.Scene {
 
                     currentY += 35;
 
-                    const productStr = r.products.join(' + ');
+                    const productStr = r.products.map(p => p.replace(/_c$/, '')).join(' + ');
                     const productText = this.add.text(x, currentY, productStr, {
                         fontSize: '34px',
                         fill: '#2ecc71',
@@ -1460,7 +1647,30 @@ export class Stage2 extends Phaser.Scene {
                 // Scrollbar thumb
                 const thumbHeight = Math.max(40, (maxVisibleHeight / totalHeight) * 500);
                 this.scrollbarThumb = this.add.rectangle(scrollbarX, y - 250 + (thumbHeight / 2), 8, thumbHeight, 0x3498db, 0.9)
-                    .setOrigin(0.5);
+                    .setOrigin(0.5)
+                    .setInteractive({ draggable: true });
+
+                this.scrollbarThumb.on('drag', (pointer, dragX, dragY) => {
+                    const trackTop = y - 250;
+                    const trackHeight = 500;
+                    const availableTrack = trackHeight - thumbHeight;
+
+                    // Cap drag Y
+                    const minY = trackTop + thumbHeight / 2;
+                    const maxY = trackTop + trackHeight - thumbHeight / 2;
+                    const clampedY = Phaser.Math.Clamp(dragY, minY, maxY);
+
+                    this.scrollbarThumb.y = clampedY;
+                    this.scrollbarThumb.x = 1338; // Hardcoded X (928 + 410) to force lock
+
+                    // Calculate scroll ratio (0 to 1)
+                    const ratio = (clampedY - minY) / availableTrack;
+
+                    // Apply to content
+                    this.journalScrollOffset = ratio * (totalHeight - maxVisibleHeight);
+                    this.journalContent.y = -this.journalScrollOffset;
+                });
+
                 this.historyContainer.add(this.scrollbarThumb);
 
                 // Enable scrolling on background
@@ -1556,11 +1766,11 @@ export class Stage2 extends Phaser.Scene {
             const glow = this.add.circle(x, y, 60, 0xffff00, 0.4).setDepth(1002);
             this.tweens.add({
                 targets: glow,
-                scale: 3,
+                scale: 2.5,
                 alpha: 0,
-                duration: 2000,
-                repeat: 2,
-                yoyo: true,
+                duration: 1000,
+                repeat: 0,
+                yoyo: false,
                 onComplete: () => glow.destroy()
             });
         } else if (effectType === 'smoke') {
@@ -1575,6 +1785,97 @@ export class Stage2 extends Phaser.Scene {
                         alpha: 0,
                         duration: 2500,
                         onComplete: () => smoke.destroy()
+                    });
+                });
+            }
+        } else if (effectType === 'rust_glow') {
+            const glow = this.add.circle(x, y, 60, 0xD45500, 0.6).setDepth(1002);
+            this.tweens.add({
+                targets: glow,
+                scale: 2.5,
+                alpha: 0,
+                duration: 1000,
+                onComplete: () => glow.destroy()
+            });
+        } else if (effectType === 'solution_fade') {
+            const solution = this.add.circle(x, y, 60, 0x3498db, 0.6).setDepth(1002);
+            this.tweens.add({
+                targets: solution,
+                alpha: 0,
+                duration: 1000,
+                onComplete: () => solution.destroy()
+            });
+        } else if (effectType === 'precipitate_milk') {
+            for (let i = 0; i < 20; i++) {
+                const p = this.add.circle(
+                    x + Phaser.Math.Between(-30, 30),
+                    y + Phaser.Math.Between(-20, 20),
+                    Phaser.Math.Between(3, 8),
+                    0xFFFFFF,
+                    0.9
+                ).setDepth(1002);
+
+                this.tweens.add({
+                    targets: p,
+                    y: y + 40 + Phaser.Math.Between(-10, 10),
+                    alpha: 0,
+                    duration: 1500,
+                    ease: 'Quad.easeOut',
+                    onComplete: () => p.destroy()
+                });
+            }
+
+        } else if (effectType === 'cloudy_white') {
+            for (let i = 0; i < 15; i++) {
+                const cloud = this.add.circle(
+                    x + Phaser.Math.Between(-40, 40),
+                    y + Phaser.Math.Between(-30, 30),
+                    Phaser.Math.Between(10, 18),
+                    0xEEEEEE,
+                    0.5
+                ).setDepth(1002);
+
+                this.tweens.add({
+                    targets: cloud,
+                    scale: 1.5,
+                    alpha: 0,
+                    duration: 1800,
+                    ease: 'Sine.easeInOut',
+                    onComplete: () => cloud.destroy()
+                });
+            }
+        } else if (effectType === 'bright_flame' || effectType === 'blue_flame') {
+            const isBlue = effectType === 'blue_flame';
+            const color = isBlue ? 0x0088FF : 0xFFAA00;
+
+            // Flash
+            const flash = this.add.circle(x, y, 80, color, 0.6).setDepth(1002);
+            this.tweens.add({
+                targets: flash,
+                scale: 3,
+                alpha: 0,
+                duration: 500,
+                onComplete: () => flash.destroy()
+            });
+
+            // Flame particles
+            for (let i = 0; i < 12; i++) {
+                this.time.delayedCall(i * 30, () => {
+                    const p = this.add.circle(
+                        x + Phaser.Math.Between(-25, 25),
+                        y + Phaser.Math.Between(-15, 15),
+                        Phaser.Math.Between(6, 14),
+                        color,
+                        0.9
+                    ).setDepth(1002);
+
+                    this.tweens.add({
+                        targets: p,
+                        y: y - 140,
+                        alpha: 0,
+                        duration: 700,
+                        ease: 'Quad.easeOut',
+                        onComplete: () => p.destroy()
                     });
                 });
             }
