@@ -1,4 +1,4 @@
-import { compounds, elements } from '../../data/chemicals.js';
+﻿import { compounds, elements } from '../../data/chemicals.js';
 import { compoundInventory } from '../CompoundInventory.js';
 import { ReactionSystem } from '../ReactionSystem.js';
 
@@ -73,7 +73,7 @@ export class Stage2 extends Phaser.Scene {
 
     create() {
         // VERIFICATION: If you see this alert, the NEW code is loaded!
-        console.log("🚀 STAGE2 NEW VERSION LOADED - DEPTH 5000 ACTIVE 🚀");
+        console.log("ðŸš€ STAGE2 NEW VERSION LOADED - DEPTH 5000 ACTIVE ðŸš€");
 
         // Load reactions data
         this.reactionSystem.loadReactions();
@@ -133,11 +133,11 @@ export class Stage2 extends Phaser.Scene {
         this.wrongAttempts = 0;
 
         // Pagination Buttons - Positioned around the grid
-        this.pageLeftBtn = this.add.text(50, 850, '◀', {
+        this.pageLeftBtn = this.add.text(50, 850, 'â—€', {
             fontSize: '48px', fill: '#ffffff'
         }).setOrigin(0.5).setInteractive({ cursor: 'pointer' }).setVisible(false);
 
-        this.pageRightBtn = this.add.text(600, 850, '▶', {
+        this.pageRightBtn = this.add.text(600, 850, 'â–¶', {
             fontSize: '48px', fill: '#ffffff'
         }).setOrigin(0.5).setInteractive({ cursor: 'pointer' }).setVisible(false);
 
@@ -212,7 +212,7 @@ export class Stage2 extends Phaser.Scene {
         this.history = savedHistory ? JSON.parse(savedHistory) : [];
         this.historyPanelOpen = false;
 
-        this.historyBtn = this.add.text(1750, 30, '📜 Journal', {
+        this.historyBtn = this.add.text(1750, 30, 'Journal', {
             fontSize: '42px',
             fill: '#ffffff',
             fontStyle: 'bold',
@@ -950,21 +950,21 @@ export class Stage2 extends Phaser.Scene {
             // sodiumChloride.png, sodiumHydroxide.png, water.png,
             // zncuso4.png, znhcl.png
 
-            '2Mg + O2 → 2MgO': 'mgo2flame',
-            'Mg + Cl2 → MgCl2': 'mgcl2',
-            '2Ca + O2 → 2CaO': 'cao2',
-            'CH4 + 2O2 → CO2 + 2H2O': 'ch4o2',
-            '2H2O → 2H2 + O2': 'h2oelectric',
-            'CaCO3 → CaO + CO2': 'caco3heat',
-            '2NaCl → 2Na + Cl2': 'sodiumChloride_hint',
-            'Zn + 2HCl → ZnCl2 + H2': 'znhcl',
-            'Mg + 2HCl → MgCl2 + H2': 'mghcl',
-            'Fe + CuSO4 → FeSO4 + Cu': 'fecuso4',
-            'Zn + CuSO4 → ZnSO4 + Cu': 'zncuso4',
-            'AgNO3 + NaCl → AgCl(s) + NaNO3': 'agno3nacl',
-            'AgNO3 + HCl → AgCl(s) + HNO3': 'agno3hcl',
-            'HCl + NaOH → NaCl + H2O': 'hclnaoh',
-            'CH4 + 2O2 → CO2 + 2H2O': 'ch4o2_hint'
+            '2Mg + O2 â†’ 2MgO': 'mgo2flame',
+            'Mg + Cl2 â†’ MgCl2': 'mgcl2',
+            '2Ca + O2 â†’ 2CaO': 'cao2',
+            'CH4 + 2O2 â†’ CO2 + 2H2O': 'ch4o2',
+            '2H2O â†’ 2H2 + O2': 'h2oelectric',
+            'CaCO3 â†’ CaO + CO2': 'caco3heat',
+            '2NaCl â†’ 2Na + Cl2': 'sodiumChloride_hint',
+            'Zn + 2HCl â†’ ZnCl2 + H2': 'znhcl',
+            'Mg + 2HCl â†’ MgCl2 + H2': 'mghcl',
+            'Fe + CuSO4 â†’ FeSO4 + Cu': 'fecuso4',
+            'Zn + CuSO4 â†’ ZnSO4 + Cu': 'zncuso4',
+            'AgNO3 + NaCl â†’ AgCl(s) + NaNO3': 'agno3nacl',
+            'AgNO3 + HCl â†’ AgCl(s) + HNO3': 'agno3hcl',
+            'HCl + NaOH â†’ NaCl + H2O': 'hclnaoh',
+            'CH4 + 2O2 â†’ CO2 + 2H2O': 'ch4o2_hint'
         };
 
         const hintImageName = hintImageMap[reaction.equation];
@@ -1331,7 +1331,7 @@ export class Stage2 extends Phaser.Scene {
         // Energy (if applicable)
         let energyText = null;
         if (reaction.energy_source) {
-            energyText = this.add.text(928, 600, `⚡ Energy Required: ${reaction.energy_source}`, {
+            energyText = this.add.text(928, 600, `âš¡ Energy Required: ${reaction.energy_source}`, {
                 fontSize: '28px',
                 fill: '#e67e22',
                 fontStyle: 'bold',
@@ -1515,6 +1515,12 @@ export class Stage2 extends Phaser.Scene {
 
     toggleHistory() {
         if (this.historyPanelOpen) {
+            if (this.historyDragHandler) {
+                this.input.off('pointermove', this.historyDragHandler);
+                this.input.off('pointerup', this.historyUpHandler);
+                this.historyDragHandler = null;
+                this.historyUpHandler = null;
+            }
             if (this.historyContainer) this.historyContainer.destroy();
             this.historyPanelOpen = false;
             return;
@@ -1543,11 +1549,12 @@ export class Stage2 extends Phaser.Scene {
         this.historyContainer.add(title);
 
         // Close Button (top-right)
-        const topCloseBtn = this.add.text(x + 400, y - 300, '❌', {
-            fontSize: '32px',
-            fill: '#e74c3c',
+        const topCloseBtn = this.add.text(x + 400, y - 300, '\u2716', {
+            fontSize: '52px',
+            fill: '#ff6666',
+            fontFamily: 'Arial',
             stroke: '#000000',
-            strokeThickness: 3
+            strokeThickness: 2
         }).setOrigin(0.5).setInteractive({ cursor: 'pointer' });
 
         topCloseBtn.on('pointerover', () => {
@@ -1648,28 +1655,44 @@ export class Stage2 extends Phaser.Scene {
                 const thumbHeight = Math.max(40, (maxVisibleHeight / totalHeight) * 500);
                 this.scrollbarThumb = this.add.rectangle(scrollbarX, y - 250 + (thumbHeight / 2), 8, thumbHeight, 0x3498db, 0.9)
                     .setOrigin(0.5)
-                    .setInteractive({ draggable: true });
+                    .setInteractive({ cursor: 'grab' });
 
-                this.scrollbarThumb.on('drag', (pointer, dragX, dragY) => {
-                    const trackTop = y - 250;
-                    const trackHeight = 500;
-                    const availableTrack = trackHeight - thumbHeight;
+                // Kinetic Scrolling Logic
+                this.isDraggingJournal = false;
+                this.journalDragStartY = 0;
+                this.journalStartOffset = 0;
 
-                    // Cap drag Y
-                    const minY = trackTop + thumbHeight / 2;
-                    const maxY = trackTop + trackHeight - thumbHeight / 2;
-                    const clampedY = Phaser.Math.Clamp(dragY, minY, maxY);
+                bg.setInteractive({ cursor: 'grab' });
 
-                    this.scrollbarThumb.y = clampedY;
-                    this.scrollbarThumb.x = 1338; // Hardcoded X (928 + 410) to force lock
-
-                    // Calculate scroll ratio (0 to 1)
-                    const ratio = (clampedY - minY) / availableTrack;
-
-                    // Apply to content
-                    this.journalScrollOffset = ratio * (totalHeight - maxVisibleHeight);
-                    this.journalContent.y = -this.journalScrollOffset;
+                bg.on('pointerdown', (pointer) => {
+                    this.isDraggingJournal = true;
+                    this.journalDragStartY = pointer.y;
+                    this.journalStartOffset = this.journalScrollOffset;
+                    bg.setCursor('grabbing');
                 });
+
+                this.historyUpHandler = () => {
+                    this.isDraggingJournal = false;
+                    if (bg && bg.scene) bg.setCursor('grab');
+                };
+                this.input.on('pointerup', this.historyUpHandler);
+
+                this.historyDragHandler = (pointer) => {
+                    if (!this.isDraggingJournal) return;
+                    const deltaY = this.journalDragStartY - pointer.y;
+                    const targetOffset = this.journalStartOffset + deltaY;
+                    const maxOffset = Math.max(0, totalHeight - maxVisibleHeight);
+                    this.journalScrollOffset = Phaser.Math.Clamp(targetOffset, 0, maxOffset);
+                    this.journalContent.y = -this.journalScrollOffset;
+                    const scrollRatio = this.journalScrollOffset / maxOffset;
+                    if (!isNaN(scrollRatio)) {
+                        const trackTop = y - 250;
+                        const availableTrack = 500 - thumbHeight;
+                        this.scrollbarThumb.y = trackTop + (thumbHeight / 2) + (scrollRatio * availableTrack);
+                        this.scrollbarThumb.x = 1338;
+                    }
+                };
+                this.input.on('pointermove', this.historyDragHandler);
 
                 this.historyContainer.add(this.scrollbarThumb);
 
@@ -1697,12 +1720,12 @@ export class Stage2 extends Phaser.Scene {
         const buttonY = y + 310;
 
         // Clear History Button (bottom-center)
-        const clearBtn = this.add.text(x, buttonY, '🗑️ Clear History', {
+        const clearBtn = this.add.text(x, buttonY, '\uD83D\uDDD1\uFE0F Clear History', {
             fontSize: '20px',
-            fill: '#ff4444',
+            fill: '#ff6666',
             fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 3,
+            strokeThickness: 2,
             padding: { x: 10, y: 6 }
         }).setOrigin(0.5).setInteractive({ cursor: 'pointer' });
 
@@ -1719,7 +1742,7 @@ export class Stage2 extends Phaser.Scene {
         clearBtn.on('pointerdown', () => {
             localStorage.removeItem('chemicalSimHistory');
             this.history = [];
-            console.log('✅ History cleared!');
+
             if (this.historyContainer) this.historyContainer.destroy();
             this.historyPanelOpen = false;
             this.toggleHistory();
@@ -1729,7 +1752,7 @@ export class Stage2 extends Phaser.Scene {
     }
 
     playProductEffect(effectType, x, y) {
-        console.log('Playing product effect:', effectType);
+
 
         if (effectType === 'bubbles' || effectType === 'constant_bubbles' || effectType === 'rapid_bubbles') {
             // Create bubbles rising

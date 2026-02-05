@@ -145,7 +145,7 @@
         "products": [
             "MgO_c"
         ],
-        "equation": "2Mg + O2 → 2MgO",
+        "equation": "2Mg + O2 + Heat → 2MgO",
         "energy_source": "initial_heat",
         "visual_effect": "Bright Flame",
         "product_effect": "bright_flame",
