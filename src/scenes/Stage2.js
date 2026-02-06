@@ -191,6 +191,38 @@ export class Stage2 extends Phaser.Scene {
         this.setupButtons();
         this.createBubbles();
 
+        // CLEAR INVENTORY BUTTON (Top of Shelf) - UX IMPROVED
+        const clearInvBtn = this.add.text(300, 270, '✖ CLEAR SHELF', {
+            fontSize: '18px',
+            fill: '#ff6b6b', // Softer red
+            fontFamily: 'Verdana, sans-serif',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4,
+            shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 2, stroke: true, fill: true }
+        })
+            .setOrigin(0.5)
+            .setInteractive({ cursor: 'pointer' })
+            .setDepth(100);
+
+        // Hover Effect - Scale and Brightness
+        clearInvBtn.on('pointerover', () => {
+            clearInvBtn.setScale(1.1);
+            clearInvBtn.setFill('#ff0000'); // Bright red on hover
+        });
+
+        clearInvBtn.on('pointerout', () => {
+            clearInvBtn.setScale(1);
+            clearInvBtn.setFill('#ff6b6b'); // Back to soft red
+        });
+
+        clearInvBtn.on('pointerdown', () => {
+            compoundInventory.clear();
+            this.inventoryPage = 0; // Reset page
+            this.renderInventory(); // Function already handles clearing visuals
+            this.cameras.main.flash(200, 255, 0, 0);
+        });
+
         this.prevStageBtn = this.add.image(1500, 950, 'previousstagebutton').setOrigin(1, 1).setScale(0.2).setInteractive({ cursor: 'pointer' });
 
         this.prevStageBtn.on('pointerdown', () => {

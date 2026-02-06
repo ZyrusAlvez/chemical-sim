@@ -143,8 +143,8 @@ export class HomePage extends Phaser.Scene {
 
         // Tutorial Button (Below Play)
         // Tutorial Button (Below Play) - Senior UX Enhancement
-        const tutorialButton = this.add.rectangle(928, 770, 300, 80, 0xe67e22);
-        tutorialButton.setStrokeStyle(4, 0xffffff);
+        const tutorialButton = this.add.rectangle(928, 760, 160, 45, 0xe67e22);
+        tutorialButton.setStrokeStyle(2, 0xffffff);
         tutorialButton.setInteractive({ cursor: 'pointer' });
 
         // Add Pulse Animation
@@ -158,8 +158,8 @@ export class HomePage extends Phaser.Scene {
             ease: 'Sine.easeInOut'
         });
 
-        const tutorialText = this.add.text(928, 770, '📖 TUTORIAL', {
-            fontSize: '36px',
+        const tutorialText = this.add.text(928, 760, '📖 TUTORIAL', {
+            fontSize: '18px',
             fill: '#ffffff',
             fontStyle: 'bold',
             shadow: {

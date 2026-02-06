@@ -185,38 +185,88 @@
             font-family: SFPro-Regular;
         }
 
-        /* Shared Button Style */
-        .play-button,
-        .tutorial-btn {
-            display: inline-block;
-            margin: 15px;
-            /* Spacing between buttons */
-            padding: 20px 60px;
-            font-size: 2.5rem;
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: bold;
-            color: #fff;
-            background: linear-gradient(135deg, #4ea281, #2ecc71);
-            border: 3px solid #fff;
-            border-radius: 50px;
-            text-decoration: none;
-            box-shadow: 0 0 20px rgba(78, 162, 129, 0.6);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        .ff-700 {
+            font-family: SFPro-Bold;
         }
 
-        .play-button:hover,
-        .tutorial-btn:hover {
-            transform: scale(1.1) translateY(-5px);
-            box-shadow: 0 0 40px rgba(46, 204, 113, 0.8);
-            background: linear-gradient(135deg, #5ec39a, #27ae60);
+        .ff-heart {
+            font-family: BreakingBad, sans-serif;
         }
 
-        .play-button:active,
-        .tutorial-btn:active {
-            transform: scale(0.95);
+        .ff-formulae {
+            font-family: AtticAntique;
+        }
+
+        .fs-1 {
+            font-size: 10px;
+        }
+
+        .fs-2 {
+            font-size: 12px;
+        }
+
+        .fs-4 {
+            font-size: 16px;
+        }
+
+        .fs-5 {
+            font-size: 24px;
+        }
+
+        .fs-6 {
+            font-size: 36px;
+        }
+
+        .fs-7 {
+            font-size: 58px;
+        }
+
+        .fs-8 {
+            font-size: 84px;
+        }
+
+        .fs-9 {
+            font-size: 98px;
+        }
+
+        .fs-10 {
+            font-size: 130px;
+        }
+
+        .lh-0 {
+            line-height: 0em;
+        }
+
+        .lh-special-1 {
+            line-height: 0.8em;
+        }
+
+        .ta-center {
+            text-align: center;
+        }
+
+        .c-0 {
+            color: transparent;
+        }
+
+        .c-neutral-100 {
+            color: white;
+        }
+
+        .c-secondary-100 {
+            color: #4ea281;
+        }
+
+        .bc-0 {
+            background-color: transparent;
+        }
+
+        .b-0 {
+            border: none;
+        }
+
+        .cur-pointer {
+            cursor: pointer;
         }
 
         .opa-0 {
@@ -515,8 +565,8 @@
                     style="transform: translate(-50%, -50%); font-size: 36px;">La</span>
             </span>
             <!-- "y" text -->
-            <span class="pl-2 mt-offset-2 | ff-heart lh-special-1 | c-0 bsize-cover bpos-center"
-                style="font-size: 55px; color: #ffffff;">
+            <span class="pl-2 mt-offset-2 | ff-heart lh-special-1 | c-0 bsize-cover bpos-center | __rust"
+                style="font-size: 55px;">
                 y
             </span>
         </a>
@@ -527,11 +577,10 @@
         </p>
 
         <!-- Tutorial Button - Premium Text Style -->
-        <!-- Tutorial Button - Smaller & Premium -->
         <a href="game.html?scene=tutorial"
-            style="text-decoration: none; pointer-events: auto; padding: 8px 24px; border: 1px solid #4ea281; border-radius: 4px; color: #4ea281; font-family: SFPro-Bold, Verdana; font-size: 14px; letter-spacing: 1px; transition: all 0.3s; pointer-events: auto; text-transform: uppercase; background: rgba(0,0,0,0.6);"
+            style="text-decoration: none; pointer-events: auto; padding: 8px 24px; border: 1px solid #4ea281; border-radius: 4px; color: #4ea281; font-family: SFPro-Bold, Verdana; font-size: 14px; letter-spacing: 1px; transition: all 0.3s; pointer-events: auto; text-transform: uppercase; background: rgba(0,0,0,0.4);"
             onmouseover="this.style.background='#4ea281'; this.style.color='#000000'; this.style.boxShadow='0 0 10px rgba(78, 162, 129, 0.4)'"
-            onmouseout="this.style.background='rgba(0,0,0,0.6)'; this.style.color='#4ea281'; this.style.boxShadow='none'">
+            onmouseout="this.style.background='rgba(0,0,0,0.4)'; this.style.color='#4ea281'; this.style.boxShadow='none'">
             Tutorial
         </a>
     </div>
