@@ -5,7 +5,7 @@ export class Tutorial extends Phaser.Scene {
         this.currentSlide = 0;
         this.slides = [
             {
-                title: "Hi Scientist! 🧪",
+                title: "Hi, Scientist!",
                 text: "Welcome to the Lab!\nLet's learn how to discover new elements.",
                 icon: "excited"
             },
@@ -16,40 +16,37 @@ export class Tutorial extends Phaser.Scene {
             },
             {
                 title: "2. Mixing",
-                text: "Click the 'COMBINE' button to mix them!\nIf the recipe is correct, you get a NEW element! ✨",
+                text: "Click the COMBINE button to mix them!\nIf the recipe is correct, you get a NEW element!",
                 icon: "combineMachine"
             },
             {
                 title: "3. Energy",
-                text: "Some reactions need energy!\nUse [Heat] or [Electricity] buttons for complex synthesis.",
+                text: "Some reactions need energy!\nUse Heat or Electricity buttons for complex synthesis.",
                 icon: "hint"
             },
             {
                 title: "4. Recipes",
-                text: "Stuck? Click the 'RECIPES' button.\nIt shows you a list of valid combinations to try!",
+                text: "Stuck? Click the RECIPES button.\nIt shows you a list of valid combinations to try!",
                 icon: "hint"
             },
             {
                 title: "5. The Journal",
-                text: "Check your Journal 📜 to see your history.\nIt records every successful experiment you make.",
+                text: "Check your 📜Journal to see your history.\nIt records every successful experiment you make.",
                 icon: "hint"
             },
             {
                 title: "Ready?",
-                text: "That's it! You are ready to experiment.\nGo safely and have fun! 🚀",
+                text: "That's it! You are ready to experiment.\nGo safely and have fun!",
                 icon: "excited"
             }
         ];
     }
 
     preload() {
-        // Assets are already loaded by HomePage/Start, but safety check or reuse
-        // We rely on assets loaded in Preloader or HomePage if they persist, 
-        // but typically Scenes should ensure their own assets availability if strictly isolated.
-        // However, since we come from HomePage, commonly shared assets might be available.
-        // To be safe, we use keys that are definitely loaded in HomePage or Start if we know flow.
-        // HomePage preloads? Start preloads?
-        // Let's assume common assets (background, scientist) are available or we reuse text.
+        // Load UI assets for the tutorial visuals
+        this.load.image('btn_initialheat', 'assets/ui/btn_initialheat.png');
+        this.load.image('btn_highheat', 'assets/ui/btn_highheat.png');
+        this.load.image('electricbutton', 'assets/ui/electricbutton.png');
     }
 
     init(data) {
@@ -58,101 +55,72 @@ export class Tutorial extends Phaser.Scene {
 
     create() {
         // =================================================================
-        // PREMIUM VISUALS: Breaking Bad / Dark Chem Theme
+        // PREMIUM VISUALS: Cinematic Dark Theme
         // =================================================================
 
-        // 1. Background: Deep Lab Dark (Matching Homepage Body)
-        // Using a radial gradient simulation via texture or multiple rects would be best, 
-        // but for Phaser code simplicity, a solid dark base with an overlay works.
         this.add.rectangle(928, 522, 1856, 1044, 0x011905);
-        // Add a subtle vignette/gradient effect
         const vignette = this.add.graphics();
         vignette.fillGradientStyle(0x000000, 0x000000, 0x011905, 0x011905, 0.8, 0.8, 0, 0);
         vignette.fillRect(0, 0, 1856, 1044);
 
-        // 2. Title: "HOW TO COOK" vibe (Breaking Bad style?) or just clean "TUTORIAL"
-        // Using the custom font 'BreakingBad' if loaded, falling back to Impact/Bold
-        const titleText = this.add.text(928, 80, 'Lab Procedure', {
-            fontSize: '72px',
-            fill: '#4ea281', // The "Breaking Bad Green" from index.html
-            fontFamily: 'BreakingBad, SFPro-Bold, Arial',
+        const titleText = this.add.text(928, 80, 'OPERATIONAL GUIDE', {
+            fontSize: '60px',
+            fill: '#4ea281',
+            fontFamily: 'Verdana, sans-serif',
+            fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 6
+            strokeThickness: 4,
+            letterSpacing: 4
         }).setOrigin(0.5).setAlpha(0);
 
-        // Title Animation (Fade + Slide Down)
         this.tweens.add({
             targets: titleText,
-            y: 120,
+            y: 100,
             alpha: 1,
-            duration: 1200,
-            ease: 'Power3.easeOut'
+            duration: 1500,
+            ease: 'Expo.easeOut'
         });
 
-        // 3. The "Element Card" Container (The Slide Area)
-        // Modeled after the Periodic Table elements in the CSS intro
         const cardX = 928;
         const cardY = 540;
         const cardWidth = 1100;
         const cardHeight = 650;
 
         const bgCard = this.add.container(cardX, cardY);
+        const cardShape = this.add.rectangle(0, 0, cardWidth, cardHeight, 0x052e16, 0.9);
+        cardShape.setStrokeStyle(2, 0x4ea281);
+        bgCard.add(cardShape);
 
-        // Glassmorphism Card Background
-        const cardShape = this.add.rectangle(0, 0, cardWidth, cardHeight, 0x052e16, 0.85); // Dark Green tint
-        cardShape.setStrokeStyle(4, 0x4ea281); // Bright Green Border
-
-        // Inner "Element" details (decorative corners)
-        const atomicNumber = this.add.text(-cardWidth / 2 + 20, -cardHeight / 2 + 20, '56', {
-            fontSize: '32px', fill: '#4ea281', fontFamily: 'SFPro-Bold'
-        }).setOrigin(0);
-
-        const atomicMass = this.add.text(cardWidth / 2 - 20, -cardHeight / 2 + 20, '137.33', {
-            fontSize: '24px', fill: '#2ecc71', fontFamily: 'SFPro-Regular'
-        }).setOrigin(1, 0);
-
-        bgCard.add([cardShape, atomicNumber, atomicMass]);
-
-        // Navigation (Left/Right)
         this.createNavigation(cardX, cardY, cardWidth);
 
-        // Slide Content - Typography Improvements
+        // Typography
         this.slideTitle = this.add.text(0, -180, '', {
-            fontSize: '64px',
+            fontSize: '52px',
             fill: '#ffffff',
-            fontFamily: 'SFPro-Bold, Arial',
-            stroke: '#000000',
-            strokeThickness: 2,
-            shadow: { offsetX: 0, offsetY: 4, color: '#4ea281', blur: 10, fill: true, stroke: true }
+            fontFamily: 'Verdana, sans-serif',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
 
         this.slideText = this.add.text(0, 40, '', {
-            fontSize: '32px',
-            fill: '#e0e0e0',
-            fontFamily: 'SFPro-Regular, Arial',
+            fontSize: '28px',
+            fill: '#cccccc',
+            fontFamily: 'Verdana, sans-serif',
             align: 'center',
             wordWrap: { width: 900 },
-            lineSpacing: 15
+            lineSpacing: 12
         }).setOrigin(0.5);
-
-        // Icon/Graphic placeholder (Central visual)
-        // We can add a 'Beaker' or 'Atom' sprite here if available, changing per slide.
-        // For now, text layout is prioritized.
 
         bgCard.add([this.slideTitle, this.slideText]);
 
-        // Start Slide Logic
         this.showSlide(0);
 
-        // Back Button - Styled as a "Exit Lab" button
-        // Positioned Top Left or Bottom Left? User liked "nicely inside".
-        // Let's float it top-left of screen for "Menu" feel.
-        const backBtn = this.add.text(60, 60, '⬅ EXIT LAB', {
-            fontSize: '24px',
+        const backBtn = this.add.text(60, 60, '⬅ RETURN', {
+            fontSize: '18px',
             fill: '#4ea281',
-            fontFamily: 'SFPro-Bold, Arial',
+            fontFamily: 'Verdana, sans-serif',
+            fontStyle: 'bold',
             backgroundColor: 'rgba(0,0,0,0.5)',
-            padding: { x: 15, y: 10 }
+            padding: { x: 20, y: 12 }
         })
             .setOrigin(0)
             .setInteractive({ cursor: 'pointer' })
@@ -178,29 +146,24 @@ export class Tutorial extends Phaser.Scene {
     createNavigation(x, y, width) {
         const arrowOffset = (width / 2) + 100;
 
-        // Visual style for arrows: Circle with chevron
         const createArrow = (offsetX, label, delta) => {
             const arrowBtn = this.add.container(x + offsetX, y);
-
-            // Circle bg
-            const circle = this.add.circle(0, 0, 40, 0x1f401d).setStrokeStyle(2, 0x4ea281);
-            const text = this.add.text(0, 0, label, { fontSize: '40px', fill: '#4ea281', fontFamily: 'Arial' }).setOrigin(0.5);
-
+            const circle = this.add.circle(0, 0, 35, 0x1f401d).setStrokeStyle(1, 0x4ea281);
+            const text = this.add.text(0, 0, label, { fontSize: '32px', fill: '#4ea281', fontFamily: 'Arial' }).setOrigin(0.5);
             arrowBtn.add([circle, text]);
 
-            // Interaction
             const hitArea = new Phaser.Geom.Circle(0, 0, 40);
             arrowBtn.setInteractive(hitArea, Phaser.Geom.Circle.Contains);
 
             arrowBtn.on('pointerover', () => {
                 circle.setFillStyle(0x4ea281);
                 text.setColor('#000000');
-                this.tweens.add({ targets: arrowBtn, scale: 1.2, duration: 100 });
+                this.tweens.add({ targets: arrowBtn, scale: 1.1, duration: 200, ease: 'Power2' });
             });
             arrowBtn.on('pointerout', () => {
                 circle.setFillStyle(0x1f401d);
                 text.setColor('#4ea281');
-                this.tweens.add({ targets: arrowBtn, scale: 1, duration: 100 });
+                this.tweens.add({ targets: arrowBtn, scale: 1, duration: 200, ease: 'Power2' });
             });
             arrowBtn.on('pointerdown', () => this.changeSlide(delta));
 
@@ -210,14 +173,13 @@ export class Tutorial extends Phaser.Scene {
         this.leftArrow = createArrow(-arrowOffset, '❮', -1);
         this.rightArrow = createArrow(arrowOffset, '❯', 1);
 
-        // Slide Dots (Progress Bar)
+        // Slide Dots
         this.dots = [];
-        const dotSpacing = 30;
-        const totalWidth = (this.slides.length - 1) * dotSpacing;
-        const startX = x - totalWidth / 2;
+        const dotSpacing = 25;
+        const startX = x - ((this.slides.length - 1) * dotSpacing) / 2;
 
         for (let i = 0; i < this.slides.length; i++) {
-            const dot = this.add.circle(startX + (i * dotSpacing), y + 380, 8, 0x1f401d);
+            const dot = this.add.circle(startX + (i * dotSpacing), y + 380, 5, 0x1f401d);
             dot.setStrokeStyle(1, 0x4ea281);
             this.dots.push(dot);
         }
@@ -226,17 +188,13 @@ export class Tutorial extends Phaser.Scene {
     showSlide(index) {
         if (index < 0 || index >= this.slides.length) return;
 
-        // Animate Out Old Content (if exists)
-        // Ideally we'd tween out, but for responsiveness we update text and tween IN.
-
         this.currentSlide = index;
         const slide = this.slides[index];
 
-        // Update Text
         this.slideTitle.setText(slide.title);
         this.slideText.setText(slide.text);
 
-        // Tween In Text
+        // Cinematic Fade-In
         this.slideTitle.setAlpha(0).setY(-200);
         this.slideText.setAlpha(0).setY(60);
 
@@ -244,56 +202,88 @@ export class Tutorial extends Phaser.Scene {
             targets: this.slideTitle,
             y: -180,
             alpha: 1,
-            duration: 500,
-            ease: 'Back.out'
+            duration: 800,
+            ease: 'Expo.easeOut'
         });
 
         this.tweens.add({
             targets: this.slideText,
             y: 40,
             alpha: 1,
-            duration: 500,
+            duration: 800,
             delay: 100,
-            ease: 'Power2.easeOut'
+            ease: 'Expo.easeOut'
         });
 
-        // Update Nav State
         this.leftArrow.setVisible(index > 0);
         this.rightArrow.setVisible(index < this.slides.length - 1);
 
         // Update Dots
         this.dots.forEach((dot, i) => {
             if (i === index) {
-                dot.setFillStyle(0x4ea281); // Active Green
-                dot.setRadius(10);
+                dot.setFillStyle(0x4ea281);
+                dot.setRadius(7);
             } else {
-                dot.setFillStyle(0x1f401d); // Dark Green
-                dot.setRadius(6);
+                dot.setFillStyle(0x1f401d);
+                dot.setRadius(5);
             }
         });
+
+        // =========================================
+        // SPECIAL CONTENT FOR SLIDES
+        // =========================================
+
+        // Clear previous special content
+        if (this.specialContent) {
+            this.specialContent.destroy();
+            this.specialContent = null;
+        }
+
+        // Slide 3: Energy (Index 3) -> Show Energy Buttons
+        if (index === 3) {
+            this.specialContent = this.add.container(0, 150);
+
+            // Initial Heat
+            const btn1 = this.add.image(-120, 0, 'btn_initialheat').setScale(0.15);
+            // High Heat
+            const btn2 = this.add.image(0, 0, 'btn_highheat').setScale(0.15);
+            // Electric
+            const btn3 = this.add.image(120, 0, 'electricbutton').setScale(0.15);
+
+            this.specialContent.add([btn1, btn2, btn3]);
+
+            // Add to the main card container so it moves/fades with it if we animated the container, 
+            // but here we are adding it to the scene relative to the card center implicitly? 
+            // The method logic above uses `bgCard` but `showSlide` doesn't seem to have reference to `bgCard` easily unless we stored it.
+            // Wait, looking at `create`, `bgCard` is a local variable. I need to store `bgCard` as `this.bgCard` to add children to it.
+            // OR I can just position them relative to camera center (928, 540) + offset.
+
+            this.specialContent.setPosition(928, 540 + 180); // Center of screen + down a bit more (was 120)
+        }
 
         // "Start Playing" Button on Last Slide
         if (this.startPlayBtn) this.startPlayBtn.destroy();
 
         if (index === this.slides.length - 1) {
-            this.startPlayBtn = this.add.text(this.cameras.main.centerX, 540 + 200, '⚗️ BEGIN EXPERIMENT', {
-                fontSize: '32px',
+            this.startPlayBtn = this.add.text(this.cameras.main.centerX, 540 + 200, 'START', {
+                fontSize: '24px',
                 fill: '#ffffff',
                 backgroundColor: '#4ea281',
-                padding: { x: 40, y: 20 },
-                fontFamily: 'SFPro-Bold, Arial',
-                shadow: { blur: 10, color: '#4ea281', fill: true }
+                padding: { x: 50, y: 15 },
+                fontFamily: 'Verdana, sans-serif',
+                fontStyle: 'bold',
+                shadow: { blur: 15, color: '#4ea281', fill: true }
             })
                 .setOrigin(0.5)
                 .setInteractive({ cursor: 'pointer' });
 
-            // Pulse Effect
             this.tweens.add({
                 targets: this.startPlayBtn,
-                scale: 1.05,
-                duration: 800,
+                scale: 1.02,
+                duration: 1500,
                 yoyo: true,
-                repeat: -1
+                repeat: -1,
+                ease: 'Sine.easeInOut'
             });
 
             this.startPlayBtn.on('pointerdown', () => this.scene.start('Start'));
