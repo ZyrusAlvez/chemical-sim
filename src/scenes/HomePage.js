@@ -141,6 +141,62 @@ export class HomePage extends Phaser.Scene {
             fontStyle: 'italic'
         }).setOrigin(0.5);
 
+        // Tutorial Button (Below Play)
+        // Tutorial Button (Below Play) - Senior UX Enhancement
+        const tutorialButton = this.add.rectangle(928, 770, 300, 80, 0xe67e22);
+        tutorialButton.setStrokeStyle(4, 0xffffff);
+        tutorialButton.setInteractive({ cursor: 'pointer' });
+
+        // Add Pulse Animation
+        this.tweens.add({
+            targets: tutorialButton,
+            scaleX: 1.05,
+            scaleY: 1.05,
+            duration: 800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        const tutorialText = this.add.text(928, 770, '📖 TUTORIAL', {
+            fontSize: '36px',
+            fill: '#ffffff',
+            fontStyle: 'bold',
+            shadow: {
+                offsetX: 2,
+                offsetY: 2,
+                color: '#000000',
+                blur: 4,
+                fill: true
+            }
+        }).setOrigin(0.5);
+
+        // Sync text pulse
+        this.tweens.add({
+            targets: tutorialText,
+            scaleX: 1.05,
+            scaleY: 1.05,
+            duration: 800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // Tutorial Button Hover
+        tutorialButton.on('pointerover', () => {
+            tutorialButton.setFillStyle(0xd35400); // Darker Orange
+            tutorialButton.setStrokeStyle(4, 0x00d4ff); // Blue glow stroke
+        });
+
+        tutorialButton.on('pointerout', () => {
+            tutorialButton.setFillStyle(0xe67e22);
+            tutorialButton.setStrokeStyle(4, 0xffffff);
+        });
+
+        tutorialButton.on('pointerdown', () => {
+            this.scene.start('Tutorial');
+        });
+
         // Sparkle effects around title
         this.time.addEvent({
             delay: 300,

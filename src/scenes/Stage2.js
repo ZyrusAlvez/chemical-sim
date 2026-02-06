@@ -200,48 +200,186 @@ export class Stage2 extends Phaser.Scene {
                 scaleY: 0.18,
                 duration: 100,
                 yoyo: true,
-                onComplete: () => {
-                    this.transitionToStart();
-                }
+                onComplete: () => this.scene.start('Start')
             });
         });
 
-        // History / Journal Button
+        // =========================================
+        // RIGHT SIDE TOOLBAR (Vertical Stack)
+        // =========================================
+        // =========================================
+        // RIGHT SIDE TOOLBAR (Vertical Stack)
+        // =========================================
+        const toolX = 1880; // Right margin anchor
+        const toolGap = 85; // Vertical spacing
+        let currentToolY = 50;
+
+        const buttonStyle = {
+            fontSize: '22px',
+            fill: '#ffffff',
+            fontFamily: 'Verdana',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 3,
+            padding: { x: 30, y: 15 }, // Extra spacing as requested
+            shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, stroke: true, fill: true }
+        };
+
+        // 1. JOURNAL (Top)
         // Load history from localStorage or create new array
         const savedHistory = localStorage.getItem('chemicalSimHistory');
         this.history = savedHistory ? JSON.parse(savedHistory) : [];
         this.historyPanelOpen = false;
 
-        this.historyBtn = this.add.text(1750, 30, '\uD83D\uDCDC Journal', {
-            fontSize: '42px',
-            fill: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 3,
-            padding: { x: 15, y: 10 }
+        this.historyBtn = this.add.text(toolX, currentToolY, '📜 JOURNAL', {
+            ...buttonStyle,
+            backgroundColor: '#2980b9'
         })
             .setOrigin(1, 0)
             .setInteractive({ cursor: 'pointer' })
-            .setDepth(100)
-            .setShadow(2, 2, '#3498db', 8, false, true);
+            .setDepth(100);
 
-        // Store original Y position
-        this.historyBtnOriginalY = 30;
-
-        // Hover effects for Journal button - subtle lift with glow
+        // Journal Hover Logic
         this.historyBtn.on('pointerover', () => {
-            this.historyBtn.setShadow(0, 0, '#3498db', 20, true, true);
-            this.historyBtn.setStroke('#3498db', 4);
-            this.historyBtn.y = this.historyBtnOriginalY - 4; // Lift up by 4px
+            this.historyBtn.setScale(1.05);
+            this.historyBtn.setShadow(0, 0, '#2980b9', 20, true, true);
         });
-
         this.historyBtn.on('pointerout', () => {
-            this.historyBtn.setShadow(2, 2, '#3498db', 8, false, true);
-            this.historyBtn.setStroke('#000000', 3);
-            this.historyBtn.y = this.historyBtnOriginalY; // Return to original position
+            this.historyBtn.setScale(1);
+            this.historyBtn.setShadow(2, 2, '#000000', 4, true, true);
+        });
+        this.historyBtn.on('pointerdown', () => this.toggleHistory());
+
+        currentToolY += toolGap;
+
+        // 2. TUTORIAL (Middle)
+        const tutorialBtn = this.add.text(toolX, currentToolY, '📖 TUTORIAL', {
+            ...buttonStyle,
+            backgroundColor: '#8e44ad'
+        })
+            .setOrigin(1, 0)
+            .setInteractive({ cursor: 'pointer' })
+            .setDepth(100);
+
+        tutorialBtn.on('pointerover', () => {
+            tutorialBtn.setScale(1.05);
+            tutorialBtn.setShadow(0, 0, '#8e44ad', 20, true, true);
+        });
+        tutorialBtn.on('pointerout', () => {
+            tutorialBtn.setScale(1);
+            tutorialBtn.setShadow(2, 2, '#000000', 4, true, true);
+        });
+        tutorialBtn.on('pointerdown', () => this.scene.start('Tutorial', { from: 'Stage2' }));
+
+        currentToolY += toolGap;
+
+        // 3. RECIPES / ? (Bottom)
+        const helpBtn = this.add.text(toolX, currentToolY, '⚡ RECIPES', {
+            ...buttonStyle,
+            backgroundColor: '#27ae60'
+        })
+            .setOrigin(1, 0)
+            .setInteractive({ cursor: 'pointer' })
+            .setDepth(100);
+
+        helpBtn.on('pointerover', () => {
+            helpBtn.setScale(1.05);
+            helpBtn.setShadow(0, 0, '#27ae60', 20, true, true);
+        });
+        helpBtn.on('pointerout', () => {
+            helpBtn.setScale(1);
+            helpBtn.setShadow(2, 2, '#000000', 4, true, true);
+        });
+        helpBtn.on('pointerdown', () => this.toggleCheatSheet());
+
+        // Create the Cheat Sheet Container
+        this.createCheatSheet();
+    }
+
+    createCheatSheet() {
+        // SENIOR UX REDESIGN: Structured, Left-Aligned, Clean Hierarchy
+        this.cheatSheet = this.add.container(928, 522).setVisible(false).setDepth(5000);
+
+        // 1. Background (Dark, Glass-like)
+        const bg = this.add.rectangle(0, 0, 1200, 850, 0x121212, 0.98)
+            .setStrokeStyle(3, 0x2ecc71); // Clean green border
+
+        // 2. Header Section
+        const title = this.add.text(0, -350, '🧪 SYNTHESIS GUIDE', {
+            fontSize: '42px',
+            fill: '#2ecc71',
+            fontFamily: 'Verdana, sans-serif',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        const subTitle = this.add.text(0, -300, 'Combine these elements to create compounds:', {
+            fontSize: '20px',
+            fill: '#aaaaaa',
+            fontFamily: 'Verdana, sans-serif'
+        }).setOrigin(0.5);
+
+        const closeText = this.add.text(0, 380, '(Click anywhere to close)', {
+            fontSize: '18px', fill: '#666666', fontFamily: 'Verdana'
+        }).setOrigin(0.5);
+
+        // 3. Structured Data List
+        const recipeList = [
+            { name: "WATER (H₂O)", ingredients: "Hydrogen + Hydrogen + Oxygen" },
+            { name: "SALT (NaCl)", ingredients: "Sodium + Chlorine" },
+            { name: "METHANE (CH₄)", ingredients: "Carbon + 4 Hydrogen" },
+            { name: "CARBON DIOXIDE (CO₂)", ingredients: "Carbon + 2 Oxygen" },
+            { name: "CALCIUM CARBONATE", ingredients: "Calcium + Carbon + 3 Oxygen" },
+            { name: "SILVER NITRATE", ingredients: "Silver + Nitrogen + 3 Oxygen" }
+        ];
+
+        // 4. Render List items
+        const startY = -220;
+        const rowHeight = 90; // Fixed height per row
+        const textGroup = [];
+
+        recipeList.forEach((item, index) => {
+            const yPos = startY + (index * rowHeight);
+
+            // A. Icon / Bullet
+            const bullet = this.add.circle(-400, yPos, 6, 0x2ecc71);
+
+            // B. Product Name (Left Aligned, Prominent)
+            const nameText = this.add.text(-380, yPos - 15, item.name, {
+                fontSize: '26px',
+                fill: '#ffffff',
+                fontFamily: 'Verdana, sans-serif',
+                fontStyle: 'bold'
+            }).setOrigin(0, 0.5);
+
+            // C. Ingredients (Left Aligned, Subtle)
+            const ingText = this.add.text(-380, yPos + 18, item.ingredients, {
+                fontSize: '20px',
+                fill: '#bbbbbb', // Light grey for contrast
+                fontFamily: 'Verdana, sans-serif'
+            }).setOrigin(0, 0.5);
+
+            // D. Separator Line (Subtle)
+            const line = this.add.rectangle(0, yPos + 45, 900, 1, 0x333333).setOrigin(0.5);
+
+            textGroup.push(bullet, nameText, ingText, line);
         });
 
-        this.historyBtn.on('pointerdown', () => this.toggleHistory());
+        // 5. Footer Note (Encouraging experimentation)
+        const footerNote = this.add.text(0, 320, '* These are just examples. Experiment to discover new reactions!', {
+            fontSize: '18px',
+            fill: '#888888',
+            fontFamily: 'Verdana, sans-serif',
+            fontStyle: 'italic'
+        }).setOrigin(0.5);
+
+        this.cheatSheet.add([bg, title, subTitle, closeText, footerNote, ...textGroup]);
+
+        // Close Interaction
+        bg.setInteractive({ cursor: 'pointer' }).on('pointerdown', () => this.toggleCheatSheet());
+    }
+
+    toggleCheatSheet() {
+        this.cheatSheet.setVisible(!this.cheatSheet.visible);
     }
 
     setupDragAndDrop() {

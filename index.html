@@ -522,10 +522,12 @@
         Scroll Down
     </p>
 
-    <!-- Play Button - Breaking Bad Style -->
+    <!-- Play Button & Tutorial Container -->
     <div class="d-flex fd-column ai-center | pos-fixed bottom-0 left-0 | w-100" scroll-btween="play_button"
         data-detector="final_text_detector" data-opacity="|0:0 to 50:0 to 85:1 to 100:1|"
-        style="pointer-events: none; z-index: 5; padding-bottom: 15vh;">
+        style="pointer-events: none; z-index: 5; padding-bottom: 5vh; gap: 20px;">
+
+        <!-- Play Button -->
         <a href="game.html" class="d-flex ai-center"
             style="text-decoration: none; pointer-events: auto; transition: transform 0.3s; filter: drop-shadow(0 0 20px rgba(78, 162, 129, 0.8));"
             onmouseover="this.style.transform='scale(1.15)'; this.style.filter='drop-shadow(0 0 30px rgba(78, 162, 129, 1))'"
@@ -568,10 +570,19 @@
                 y
             </span>
         </a>
+
         <p class="m-0"
-            style="margin-top: 20px !important; color: #4ea281; font-size: 16px; font-family: SFPro-Regular;">
+            style="color: #4ea281; font-size: 16px; font-family: SFPro-Regular; margin-bottom: 10px !important;">
             Click to Start
         </p>
+
+        <!-- Tutorial Button - Premium Text Style -->
+        <a href="game.html?scene=tutorial"
+            style="text-decoration: none; pointer-events: auto; padding: 12px 40px; border: 2px solid #4ea281; border-radius: 4px; color: #4ea281; font-family: SFPro-Bold, Verdana; font-size: 18px; letter-spacing: 2px; transition: all 0.3s; pointer-events: auto; text-transform: uppercase; background: rgba(0,0,0,0.4);"
+            onmouseover="this.style.background='#4ea281'; this.style.color='#000000'; this.style.boxShadow='0 0 15px rgba(78, 162, 129, 0.5)'"
+            onmouseout="this.style.background='rgba(0,0,0,0.4)'; this.style.color='#4ea281'; this.style.boxShadow='none'">
+            Tutorial
+        </a>
     </div>
 
     <div style="padding-top: 100vh; padding-bottom: 30vh">
