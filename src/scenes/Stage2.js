@@ -1,4 +1,4 @@
-﻿import { compounds, elements } from '../../data/chemicals.js';
+import { compounds, elements } from '../../data/chemicals.js';
 import { compoundInventory } from '../CompoundInventory.js';
 import { ReactionSystem } from '../ReactionSystem.js';
 
@@ -7,8 +7,7 @@ export class Stage2 extends Phaser.Scene {
     constructor() {
         super('Stage2');
         this.reactionSystem = new ReactionSystem();
-        this.currentHintImage = null;
-        this.currentHintText = null;
+        this.currentHint = null;
     }
 
     preload() {
@@ -33,8 +32,20 @@ export class Stage2 extends Phaser.Scene {
         this.load.image('btn_highheat_pressed', 'assets/btn_highheat_pressed.png');
 
         // Load hint speech bubbles (all files from assets/speech/hint/)
+        // ── TARGET-COMPOUND HINTS (formula-named, shown proactively) ──
+        this.load.image('hint_h2o', 'assets/speech/hint/h2o.png');
+        this.load.image('hint_nacl', 'assets/speech/hint/nacl.png');
+        this.load.image('hint_naoh', 'assets/speech/hint/NaOH.png');
+        this.load.image('hint_agno3', 'assets/speech/hint/AgNO3.png');
+        this.load.image('hint_caco3', 'assets/speech/hint/CaCO3.png');
+        this.load.image('hint_cuso4', 'assets/speech/hint/CuSO4.png');
+        this.load.image('hint_hcl', 'assets/speech/hint/HCl.png');
+        this.load.image('hint_ch4o2', 'assets/speech/hint/ch4o2.png');
+
+        // ── REACTION HINTS (shown after combo match or energy guidance) ──
         this.load.image('cao2', 'assets/speech/hint/cao2.png?v=999');
         this.load.image('mgo2flame', 'assets/speech/hint/mgo2flame.png?v=999');
+        this.load.image('mgo2', 'assets/speech/hint/mgo2.png?v=999');
         this.load.image('mgcl2', 'assets/speech/hint/mgcl2.png?v=999');
         this.load.image('water', 'assets/speech/hint/water.png');
         // Load compound images and hints dynamically from chemicals.js
@@ -57,8 +68,8 @@ export class Stage2 extends Phaser.Scene {
 
         // Manual loads for specific reaction hints not in compounds list (if any)
         this.load.image('h2oelectric', 'assets/speech/hint/h2oelectric.png');
-        this.load.image('ch4o2_hint', 'assets/speech/hint/ch4o2.png?v=999'); // Force load
-        this.load.image('copperSulfate_hint', 'assets/speech/hint/copperSulfate.png'); // Renamed to avoid collision
+        this.load.image('ch4o2_hint', 'assets/speech/hint/ch4o2.png?v=999');
+        this.load.image('copperSulfate_hint', 'assets/speech/hint/copperSulfate.png');
         this.load.image('fecuso4', 'assets/speech/hint/fecuso4.png');
         this.load.image('silverNitrate', 'assets/speech/hint/silverNitrate.png');
         this.load.image('sodiumHydroxide', 'assets/speech/hint/sodiumHydroxide.png');
@@ -69,11 +80,20 @@ export class Stage2 extends Phaser.Scene {
         this.load.image('agno3nacl', 'assets/speech/hint/agno3nacl.png');
         this.load.image('agno3hcl', 'assets/speech/hint/agno3hcl.png');
         this.load.image('hclnaoh', 'assets/speech/hint/hclnaoh.png');
+        this.load.image('caco3heat', 'assets/speech/hint/caco3heat.png');
+        this.load.image('naclelectric', 'assets/speech/hint/naclelectric.png');
+
+        // Alert/Feedback PNGs
+        this.load.image('wrong_formula', 'assets/speech/wrong_formula.png');
+        this.load.image('already_formulated', 'assets/speech/already_formulated.png');
     }
 
     create() {
         // VERIFICATION: If you see this alert, the NEW code is loaded!
         console.log("ðŸš€ STAGE2 NEW VERSION LOADED - DEPTH 5000 ACTIVE ðŸš€");
+
+        // Notify that the game is ready (Hides Skeleton)
+        window.dispatchEvent(new Event('game-ready'));
 
         // Load reactions data
         this.reactionSystem.loadReactions();
@@ -246,6 +266,8 @@ export class Stage2 extends Phaser.Scene {
         const toolGap = 85; // Vertical spacing
         let currentToolY = 50;
 
+
+
         const buttonStyle = {
             fontSize: '22px',
             fill: '#ffffff',
@@ -256,6 +278,32 @@ export class Stage2 extends Phaser.Scene {
             padding: { x: 30, y: 15 }, // Extra spacing as requested
             shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, stroke: true, fill: true }
         };
+
+        // EXIT BUTTON (Top Left) - Tab Style
+        const exitBtn = this.add.text(0, 50, '✕ EXIT', {
+            ...buttonStyle,
+            backgroundColor: '#c0392b', // Red
+            fixedWidth: 120,
+            align: 'center',
+            padding: { x: 10, y: 15 } // Adjust padding for tab look
+        })
+            .setOrigin(0, 0) // Anchor top-left
+            .setInteractive({ cursor: 'pointer' })
+            .setDepth(1000) // Layering: z-index 1000 equivalent
+            .setScrollFactor(0);
+
+        // Add a "Tab" shape mask or background if needed, but text with background color works as a simple tab
+        // To make it look "clipped", x=0 is good.
+
+        exitBtn.on('pointerover', () => {
+            exitBtn.setBackgroundColor('#e74c3c');
+        });
+        exitBtn.on('pointerout', () => {
+            exitBtn.setBackgroundColor('#c0392b');
+        });
+        exitBtn.on('pointerdown', () => {
+            window.location.href = 'index.html?showThanks=true';
+        });
 
         // 1. JOURNAL (Top)
         // Load history from localStorage or create new array
@@ -322,102 +370,214 @@ export class Stage2 extends Phaser.Scene {
             helpBtn.setScale(1);
             helpBtn.setShadow(2, 2, '#000000', 4, true, true);
         });
-        helpBtn.on('pointerdown', () => this.toggleCheatSheet());
+        helpBtn.on('pointerdown', () => this.toggleRecipeBook());
 
-        // Create the Cheat Sheet Container
-        this.createCheatSheet();
+        // Create the Cheat Sheet Container - REMOVED (DOM-based now)
     }
 
-    createCheatSheet() {
-        // SENIOR UX REDESIGN: Structured, Left-Aligned, Clean Hierarchy
-        this.cheatSheet = this.add.container(928, 522).setVisible(false).setDepth(5000);
+    toggleRecipeBook() {
+        // Toggle existence of DOM element
+        const existing = document.getElementById('recipe-book-overlay');
+        if (existing) {
+            existing.remove();
+            return;
+        }
 
-        // 1. Background (Dark, Glass-like)
-        const bg = this.add.rectangle(0, 0, 1200, 850, 0x121212, 0.98)
-            .setStrokeStyle(3, 0x2ecc71); // Clean green border
+        // Data Source
+        const uniqueCount = compoundInventory.getUniqueNonGasCount();
+        const showDecomp = uniqueCount >= 10;
 
-        // 2. Header Section
-        const title = this.add.text(0, -350, '🧪 SYNTHESIS GUIDE', {
-            fontSize: '42px',
-            fill: '#2ecc71',
-            fontFamily: 'Verdana, sans-serif',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        const subTitle = this.add.text(0, -300, 'Combine these elements to create compounds:', {
-            fontSize: '20px',
-            fill: '#aaaaaa',
-            fontFamily: 'Verdana, sans-serif'
-        }).setOrigin(0.5);
-
-        const closeText = this.add.text(0, 380, '(Click anywhere to close)', {
-            fontSize: '18px', fill: '#666666', fontFamily: 'Verdana'
-        }).setOrigin(0.5);
-
-        // 3. Structured Data List
-        const recipeList = [
-            { name: "WATER (H₂O)", ingredients: "Hydrogen + Hydrogen + Oxygen" },
-            { name: "SALT (NaCl)", ingredients: "Sodium + Chlorine" },
-            { name: "METHANE (CH₄)", ingredients: "Carbon + 4 Hydrogen" },
-            { name: "CARBON DIOXIDE (CO₂)", ingredients: "Carbon + 2 Oxygen" },
-            { name: "CALCIUM CARBONATE", ingredients: "Calcium + Carbon + 3 Oxygen" },
-            { name: "SILVER NITRATE", ingredients: "Silver + Nitrogen + 3 Oxygen" }
+        const synthesisRecipes = [
+            { name: "WATER (H₂O)", formula: "H + H + O" },
+            { name: "SALT (NaCl)", formula: "Na + Cl" },
+            { name: "METHANE (CH₄)", formula: "C + 4H" },
+            { name: "CARBON DIOXIDE (CO₂)", formula: "C + 2O" },
+            { name: "CALCIUM CARBONATE", formula: "Ca + C + 3O" },
+            { name: "SILVER NITRATE", formula: "Ag + N + 3O" },
+            { name: "SODIUM HYDROXIDE", formula: "Na + O + H" },
+            { name: "HYDROCHLORIC ACID", formula: "H + Cl" },
+            { name: "COPPER SULFATE", formula: "Cu + S + 4O" }
         ];
 
-        // 4. Render List items
-        const startY = -220;
-        const rowHeight = 90; // Fixed height per row
-        const textGroup = [];
+        const decompRecipes = [
+            { name: "WATER → H₂ + O₂", formula: "Water + Electricity (High)" },
+            { name: "SALT → Na + Cl₂", formula: "NaCl + Electricity (Molten)" },
+            { name: "CaCO₃ → CaO + CO₂", formula: "CaCO₃ + Heat (High)" }
+        ];
 
-        recipeList.forEach((item, index) => {
-            const yPos = startY + (index * rowHeight);
+        // Container
+        const overlay = document.createElement('div');
+        overlay.id = 'recipe-book-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+        `;
 
-            // A. Icon / Bullet
-            const bullet = this.add.circle(-400, yPos, 6, 0x2ecc71);
+        // Click outside to close
+        overlay.onclick = (e) => {
+            if (e.target === overlay) overlay.remove();
+        };
 
-            // B. Product Name (Left Aligned, Prominent)
-            const nameText = this.add.text(-380, yPos - 15, item.name, {
-                fontSize: '26px',
-                fill: '#ffffff',
-                fontFamily: 'Verdana, sans-serif',
-                fontStyle: 'bold'
-            }).setOrigin(0, 0.5);
+        // Book Content
+        const book = document.createElement('div');
+        book.style.cssText = `
+            width: 500px; max-height: 450px; background: #1a1a1a;
+            border: 2px solid #2ecc71; border-radius: 8px;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+            display: flex; flex-direction: column; overflow: hidden;
+            font-family: 'Verdana', sans-serif;
+        `;
 
-            // C. Ingredients (Left Aligned, Subtle)
-            const ingText = this.add.text(-380, yPos + 18, item.ingredients, {
-                fontSize: '20px',
-                fill: '#bbbbbb', // Light grey for contrast
-                fontFamily: 'Verdana, sans-serif'
-            }).setOrigin(0, 0.5);
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = `
+            background: #2ecc71; color: #000; padding: 15px;
+            font-weight: bold; font-size: 20px; text-align: center;
+            display: flex; justify-content: space-between; align-items: center;
+        `;
+        header.innerHTML = `<span>🧪 RECIPE BOOK</span><span style="font-size: 14px; opacity: 0.8">Unlocked: ${uniqueCount}</span>`;
 
-            // D. Separator Line (Subtle)
-            const line = this.add.rectangle(0, yPos + 45, 900, 1, 0x333333).setOrigin(0.5);
+        // Scrollable List
+        const list = document.createElement('div');
+        list.style.cssText = `
+            flex: 1; overflow-y: auto; padding: 20px;
+            color: #ecf0f1;
+        `;
 
-            textGroup.push(bullet, nameText, ingText, line);
-        });
+        // Helper to render items
+        const renderItem = (item, color) => `
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #333;">
+                <div style="color: ${color}; font-weight: bold; font-size: 16px; margin-bottom: 5px;">${item.name}</div>
+                <div style="color: #bdc3c7; font-size: 14px;">${item.formula}</div>
+            </div>
+        `;
 
-        // 5. Footer Note (Encouraging experimentation)
-        const footerNote = this.add.text(0, 320, '* These are just examples. Experiment to discover new reactions!', {
-            fontSize: '18px',
-            fill: '#888888',
-            fontFamily: 'Verdana, sans-serif',
-            fontStyle: 'italic'
-        }).setOrigin(0.5);
+        // 1. Synthesis Section
+        list.innerHTML += `<div style="color: #2ecc71; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #2ecc71; padding-bottom: 5px;">⚗️ SYNTHESIS</div>`;
+        synthesisRecipes.forEach(r => list.innerHTML += renderItem(r, '#ffffff'));
 
-        this.cheatSheet.add([bg, title, subTitle, closeText, footerNote, ...textGroup]);
+        // 2. Decomposition Section (Gated)
+        list.innerHTML += `<div style="color: #e74c3c; font-weight: bold; margin: 25px 0 15px 0; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">💥 DECOMPOSITION</div>`;
 
-        // Close Interaction
-        bg.setInteractive({ cursor: 'pointer' }).on('pointerdown', () => this.toggleCheatSheet());
+        if (showDecomp) {
+            decompRecipes.forEach(r => list.innerHTML += renderItem(r, '#ffffff'));
+        } else {
+            list.innerHTML += `
+                <div style="background: rgba(231, 76, 60, 0.1); border: 1px dashed #e74c3c; padding: 15px; text-align: center; color: #e74c3c; border-radius: 5px;">
+                    <div>🔒 LOCKED</div>
+                    <div style="font-size: 12px; margin-top: 5px;">Collect 10 Unique Compounds to reveal</div>
+                </div>
+            `;
+        }
+
+        book.appendChild(header);
+        book.appendChild(list);
+
+        // Footer hint
+        const footer = document.createElement('div');
+        footer.style.cssText = "padding: 10px; background: #222; text-align: center; color: #777; font-size: 12px; font-style: italic;";
+        footer.innerText = "(Click outside to close)";
+        book.appendChild(footer);
+
+        overlay.appendChild(book);
+        document.body.appendChild(overlay);
     }
 
-    toggleCheatSheet() {
-        this.cheatSheet.setVisible(!this.cheatSheet.visible);
+    showMissionMessage(msg) {
+        const missionBox = document.createElement('div');
+        missionBox.style.cssText = `
+            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8); border: 2px solid #3498db;
+            color: #ecf0f1; padding: 20px 40px; font-family: 'Verdana', sans-serif;
+            font-size: 20px; font-weight: bold; border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); z-index: 2000;
+            text-align: center;
+        `;
+        missionBox.innerText = msg;
+        document.body.appendChild(missionBox);
+
+        setTimeout(() => {
+            missionBox.style.transition = 'opacity 1s';
+            missionBox.style.opacity = '0';
+            setTimeout(() => missionBox.remove(), 1000);
+        }, 4000);
+    }
+
+    showAchievementBadge(tier) {
+        const config = {
+            bronze: { css: 'border: 3px solid #cd7f32; color: #cd7f32; box-shadow: 0 0 15px #cd7f32;', symbol: '5', label: 'BRONZE ALCHEMIST' },
+            silver: { css: 'border: 3px solid #c0c0c0; color: #c0c0c0; box-shadow: 0 0 15px #c0c0c0;', symbol: '10', label: 'SILVER CHEMIST' },
+            master: { css: 'border: 3px solid #ffd700; color: #ffd700; box-shadow: 0 0 25px #ffd700;', symbol: 'M', label: 'MASTER ALCHEMIST' }
+        }[tier];
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'achievement-badge';
+        wrapper.style.cssText = `
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 80px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; background: rgba(0,0,0,0.9);
+            z-index: 5000; animation: badgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            ${config.css}
+        `;
+
+        wrapper.innerHTML = `
+            <div style="font-size: 32px; font-weight: 900; font-family: 'Verdana';">${config.symbol}</div>
+            <div style="position: absolute; bottom: -40px; white-space: nowrap; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 0 #000;">${config.label}</div>
+        `;
+        document.body.appendChild(wrapper);
+
+        // Add keyframes if not exists
+        if (!document.getElementById('badge-style')) {
+            const style = document.createElement('style');
+            style.id = 'badge-style';
+            style.innerHTML = `@keyframes badgePop { 0% { transform: translateX(-50%) scale(0); } 100% { transform: translateX(-50%) scale(1); } }`;
+            document.head.appendChild(style);
+        }
+
+        if (tier === 'master') {
+            this.triggerSparkle();
+        }
+
+        setTimeout(() => {
+            wrapper.style.transition = 'opacity 0.5s, transform 0.5s';
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateX(-50%) translateY(-20px)';
+            setTimeout(() => wrapper.remove(), 500);
+        }, 4000);
+    }
+
+    triggerSparkle() {
+        const sparkleOverlay = document.createElement('div');
+        sparkleOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;';
+        document.body.appendChild(sparkleOverlay);
+
+        const colors = ['#FFD700', '#FFF', '#FFA500'];
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.innerText = '✨';
+            star.style.cssText = `
+                position: absolute; font-size: ${10 + Math.random() * 20}px;
+                left: ${Math.random() * 100}%; top: ${Math.random() * 100}%;
+                color: ${colors[Math.floor(Math.random() * colors.length)]};
+                opacity: 0; animation: sparkleAnim ${1 + Math.random()}s linear forwards;
+                animation-delay: ${Math.random() * 0.5}s;
+            `;
+            sparkleOverlay.appendChild(star);
+        }
+
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes sparkleAnim { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1.5); } 100% { opacity: 0; transform: scale(0); } }`;
+        sparkleOverlay.appendChild(style);
+
+        setTimeout(() => sparkleOverlay.remove(), 2000);
     }
 
     setupDragAndDrop() {
         this.input.on('dragstart', (pointer, gameObject) => {
             gameObject.setDepth(5000); // SUPER TOP PRIORITY
             gameObject.setAlpha(0.7); // Semi-transparent during drag
+            // TEXT FIX: Do not drag the label visually, or keep it attached but ensure it doesn't clone.
             if (gameObject.labelText) {
                 gameObject.labelText.setAlpha(0.7);
             }
@@ -433,18 +593,20 @@ export class Stage2 extends Phaser.Scene {
         });
 
         this.input.on('drop', (pointer, gameObject, dropZone) => {
-            // Position items within the beaker bounds - Expanded range to fix cramping
+            // Position items within the beaker bounds
             const beakerCenterX = 1070;
             const beakerCenterY = 685;
-            // Widen the spread (was -40,40)
             const offsetX = Phaser.Math.Between(-80, 80);
-            // Slightly more vertical spread (was -30,30)
             const offsetY = Phaser.Math.Between(-40, 50);
 
+            // TEXT FIX: Create ONLY the image. explicit texture key.
+            // Do NOT clone children or labels.
             const copy = this.add.image(beakerCenterX + offsetX, beakerCenterY + offsetY, gameObject.texture.key)
                 .setOrigin(0.5, 0.5)
                 .setScale(0.12)
                 .setData('textureKey', gameObject.texture.key);
+
+            // Ensure no label logic is attached to 'copy'
             this.elementsInZone.push(copy);
             copy.inDropZone = true;
 
@@ -459,9 +621,21 @@ export class Stage2 extends Phaser.Scene {
                     gameObject.setAlpha(1); // Restore full opacity
                     if (gameObject.labelText) {
                         gameObject.labelText.setAlpha(1);
+                        gameObject.labelText.x = gameObject.originalX;
+                        gameObject.labelText.y = gameObject.originalY + 50;
                     }
                 }
             });
+
+            if (gameObject.labelText) {
+                this.tweens.add({
+                    targets: gameObject.labelText,
+                    x: gameObject.originalX,
+                    y: gameObject.originalY + 50,
+                    duration: 300,
+                    ease: 'Power2'
+                });
+            }
 
             copy.floatTween = this.tweens.add({
                 targets: copy,
@@ -472,12 +646,11 @@ export class Stage2 extends Phaser.Scene {
                 repeat: -1
             });
 
-            // Check and show hint after element is dropped
-            this.checkAndShowHint();
+            // HINT TRIGGER: Fire on every drop for two-phase narrowing
+            this.updateBeakerState();
         });
 
         this.input.on('dragend', (pointer, gameObject) => {
-            // If dropped in zone, 'drop' logic handles it. If not, reset here.
             if (!gameObject.inDropZone) {
                 this.tweens.add({
                     targets: gameObject,
@@ -486,10 +659,12 @@ export class Stage2 extends Phaser.Scene {
                     duration: 300,
                     ease: 'Power2',
                     onComplete: () => {
-                        gameObject.setDepth(2); // Reset depth
-                        gameObject.setAlpha(1); // Restore full opacity
+                        gameObject.setDepth(2);
+                        gameObject.setAlpha(1);
                         if (gameObject.labelText) {
                             gameObject.labelText.setAlpha(1);
+                            gameObject.labelText.x = gameObject.originalX;
+                            gameObject.labelText.y = gameObject.originalY + 50;
                         }
                     }
                 });
@@ -503,10 +678,11 @@ export class Stage2 extends Phaser.Scene {
                     });
                 }
             } else {
-                // Was dropped successfully, reset flag and depth
+                // Was dropped successfully (clone created), logic handled in drop.
+                // Just reset the original item.
                 gameObject.inDropZone = false;
                 gameObject.setDepth(2);
-                gameObject.setAlpha(1); // Restore full opacity
+                gameObject.setAlpha(1);
                 if (gameObject.labelText) {
                     gameObject.labelText.setAlpha(1);
                 }
@@ -523,34 +699,24 @@ export class Stage2 extends Phaser.Scene {
             this.combineBtnPressed.setVisible(true);
             this.combineBtn.disableInteractive();
 
-            const elementsInZone = this.elementsInZone.map(element => element.texture.key);
+            try {
+                // CLEAR ANY VISIBLE HINT before showing result
+                this.hideHint();
 
-            // Find matching reaction
-            const reaction = this.reactionSystem.findReaction(elementsInZone, this.activeEnergySource);
+                const elementsInZone = this.elementsInZone.map(element => element.texture.key);
 
-            if (!reaction && elementsInZone.length > 0) {
-                // No valid reaction found
-                this.wrongAttempts++;
-                if (this.wrongAttempts >= 3) {
-                    this.showClosestHint(elementsInZone);
-                    this.wrongAttempts = 0;
-                } else {
+                // Save energy source BEFORE resetting buttons
+                const savedEnergySource = this.activeEnergySource;
+
+                // RESET ENERGY BUTTONS immediately after combine press
+                this.resetEnergyButtons();
+
+                // NEGATIVE GUARD CLAUSE: Mg + O2 without Initial Heat
+                // This is checked FIRST, before findReaction, so it can never bypass.
+                const hasMg = elementsInZone.includes('magnesium');
+                const hasO2 = elementsInZone.includes('o2');
+                if (hasMg && hasO2 && savedEnergySource !== 'initial_heat') {
                     this.showWrongFormulaMessage();
-                }
-                this.time.delayedCall(2000, () => {
-                    this.combineBtn.setVisible(true);
-                    this.combineBtnPressed.setVisible(false);
-                    this.combineBtn.setInteractive();
-                    this.buttonPressed = false;
-                });
-                return;
-            }
-
-            if (reaction) {
-                // Check if energy requirement is met
-                const requiredEnergy = this.reactionSystem.getRequiredEnergy(reaction);
-                if (requiredEnergy && this.activeEnergySource !== requiredEnergy) {
-                    this.showEnergyRequiredMessage(requiredEnergy);
                     this.time.delayedCall(2000, () => {
                         this.combineBtn.setVisible(true);
                         this.combineBtnPressed.setVisible(false);
@@ -560,15 +726,74 @@ export class Stage2 extends Phaser.Scene {
                     return;
                 }
 
-                // Get products
-                const products = this.reactionSystem.getProducts(reaction);
+                // ===== PRIORITY 1: RECIPE CHECK =====
+                // Find matching reaction using the SAVED energy source
+                const reaction = this.reactionSystem.findReaction(elementsInZone, savedEnergySource);
 
-                console.log('Reaction found:', reaction.equation);
-                console.log('Products:', products.map(p => p.name));
+                if (!reaction && elementsInZone.length > 0) {
+                    // No recipe matches at all -> show wrong_formula.png
+                    this.showWrongFormulaMessage();
+                    this.time.delayedCall(2000, () => {
+                        this.combineBtn.setVisible(true);
+                        this.combineBtnPressed.setVisible(false);
+                        this.combineBtn.setInteractive();
+                        this.buttonPressed = false;
+                    });
+                    return;
+                }
 
-                // Show reaction result with balanced equation
-                this.wrongAttempts = 0;
-                this.showReactionResult(reaction);
+                if (reaction) {
+                    // ===== PRIORITY 2: ENERGY GATE =====
+                    const requiredEnergy = this.reactionSystem.getRequiredEnergy(reaction);
+
+                    if (requiredEnergy && savedEnergySource !== requiredEnergy) {
+                        // Recipe valid but wrong/missing energy -> show wrong_formula.png
+                        this.showWrongFormulaMessage();
+                        this.time.delayedCall(2000, () => {
+                            this.combineBtn.setVisible(true);
+                            this.combineBtnPressed.setVisible(false);
+                            this.combineBtn.setInteractive();
+                            this.buttonPressed = false;
+                        });
+                        return;
+                    }
+
+                    // Get products
+                    const products = this.reactionSystem.getProducts(reaction);
+
+                    console.log('Reaction found:', reaction.equation);
+                    console.log('Products:', products.map(p => p.name));
+
+                    // ===== PRIORITY 3: DUPLICATE CHECK =====
+                    // Gas compounds (H2, O2, Cl2) are allowed as duplicates
+                    const gasNames = ['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas'];
+                    if (products.length > 0) {
+                        const mainProduct = products[0];
+                        if (!gasNames.includes(mainProduct.name) && compoundInventory.hasCompound(mainProduct.name)) {
+                            // Already discovered (non-gas)!
+                            this.showAlreadyFormulatedMessage();
+                            this.time.delayedCall(2000, () => {
+                                this.combineBtn.setVisible(true);
+                                this.combineBtnPressed.setVisible(false);
+                                this.combineBtn.setInteractive();
+                                this.buttonPressed = false;
+                            });
+                            return;
+                        }
+                    }
+
+                    // ALL CHECKS PASSED -> Show reaction result
+                    this.wrongAttempts = 0;
+                    this.showReactionResult(reaction);
+                }
+            } catch (error) {
+                console.error('CRITICAL ERROR in combineBtn:', error);
+                this.time.delayedCall(500, () => {
+                    this.combineBtn.setVisible(true);
+                    this.combineBtnPressed.setVisible(false);
+                    this.combineBtn.setInteractive();
+                    this.buttonPressed = false;
+                });
             }
 
             this.time.delayedCall(2000, () => {
@@ -579,6 +804,8 @@ export class Stage2 extends Phaser.Scene {
             });
         });
 
+
+
         this.clearBtn.on('pointerdown', () => {
             if (this.clearButtonPressed) return;
 
@@ -588,6 +815,7 @@ export class Stage2 extends Phaser.Scene {
             this.clearBtn.disableInteractive();
 
             this.hideAllAnimations();
+            this.hideHint(); // CLEAR HINTS
             this.activeEnergySource = null;
 
             this.elementsInZone.forEach(element => {
@@ -616,6 +844,9 @@ export class Stage2 extends Phaser.Scene {
             this.activeEnergySource = 'initial_heat';
             this.showLowHeatEffect();
 
+            // Update hints based on new energy
+            this.updateBeakerState();
+
             this.time.delayedCall(2000, () => {
                 this.initialHeatBtn.setVisible(true);
                 this.initialHeatBtnPressed.setVisible(false);
@@ -636,6 +867,9 @@ export class Stage2 extends Phaser.Scene {
             this.activeEnergySource = 'electricity';
             this.showElectricEffect();
 
+            // Update hints based on new energy
+            this.updateBeakerState();
+
             this.time.delayedCall(2000, () => {
                 this.electricBtn.setVisible(true);
                 this.electricBtnPressed.setVisible(false);
@@ -655,6 +889,9 @@ export class Stage2 extends Phaser.Scene {
             this.hideAllAnimations();
             this.activeEnergySource = 'high_heat';
             this.showHighHeatEffect();
+
+            // Update hints based on new energy
+            this.updateBeakerState();
 
             this.time.delayedCall(2000, () => {
                 this.highHeatBtn.setVisible(true);
@@ -784,6 +1021,69 @@ export class Stage2 extends Phaser.Scene {
         this.showCongratsScreen(compound);
         // Refresh entire inventory to handle pagination/sorting
         this.renderInventory();
+
+        // CHECK MILESTONES after adding compound (unique only, one-time triggers)
+        const uniqueCount = compoundInventory.getUniqueNonGasCount();
+        if (uniqueCount >= 19 && !compoundInventory.isMasterUnlocked) {
+            compoundInventory.isMasterUnlocked = true;
+            this.time.delayedCall(3500, () => this.showAchievementBadge('master'));
+        } else if (uniqueCount >= 10 && !compoundInventory.hasShownSilver) {
+            compoundInventory.hasShownSilver = true;
+            this.time.delayedCall(3500, () => this.showAchievementBadge('silver'));
+        } else if (uniqueCount >= 5 && !compoundInventory.hasShownBronze) {
+            compoundInventory.hasShownBronze = true;
+            this.time.delayedCall(3500, () => this.showAchievementBadge('bronze'));
+        }
+    }
+
+    showAchievementBadge(tier) {
+        // DOM-BASED CSS ACHIEVEMENT BADGE — non-blocking, top-center, z-index 1050
+        const config = {
+            bronze: { css: 'badge-bronze', symbol: '5', label: 'BRONZE ALCHEMIST' },
+            silver: { css: 'badge-silver', symbol: '10', label: 'SILVER CHEMIST' },
+            master: { css: 'badge-master', symbol: 'M', label: 'MASTER ALCHEMIST' }
+        }[tier];
+
+        // Create badge container
+        const wrapper = document.createElement('div');
+        wrapper.className = `achievement-badge ${config.css}`;
+        wrapper.innerHTML = `
+            <div class="badge-circle">${config.symbol}</div>
+            <div class="badge-label">${config.label}</div>
+        `;
+        document.body.appendChild(wrapper);
+
+        // Master: add sparkle screen overlay
+        let sparkleOverlay = null;
+        if (tier === 'master') {
+            sparkleOverlay = document.createElement('div');
+            sparkleOverlay.className = 'sparkle-overlay';
+
+            // Generate star particles
+            const starColors = ['#FFD700', '#FFFFFF', '#FFF8DC', '#FFE4B5', '#FFC107', '#FFEB3B'];
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'sparkle-star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.backgroundColor = starColors[Math.floor(Math.random() * starColors.length)];
+                star.style.width = `${4 + Math.random() * 8}px`;
+                star.style.height = star.style.width;
+                star.style.setProperty('--duration', `${0.6 + Math.random() * 1.4}s`);
+                star.style.setProperty('--delay', `${Math.random() * 2}s`);
+                sparkleOverlay.appendChild(star);
+            }
+            document.body.appendChild(sparkleOverlay);
+        }
+
+        // Fade out after 4 seconds, remove after animation
+        setTimeout(() => {
+            wrapper.classList.add('fade-out');
+            setTimeout(() => {
+                wrapper.remove();
+                if (sparkleOverlay) sparkleOverlay.remove();
+            }, 600);
+        }, 4000);
     }
 
     // New method to render full inventory page
@@ -840,6 +1140,11 @@ export class Stage2 extends Phaser.Scene {
             x = slot.x;
             y = slot.y;
             scale = compound.scale;
+            // Gas sprites are 20% smaller than solids for visual distinction
+            const gasKeys = ['h2', 'o2', 'cl2'];
+            if (gasKeys.includes(compound.textureKey)) {
+                scale = scale * 0.8;
+            }
             this.nextSlotIndex++;
         }
 
@@ -848,19 +1153,21 @@ export class Stage2 extends Phaser.Scene {
             .setScale(scale)
             .setInteractive();
 
+        // WORD-SNAPPING FIX: Never break words mid-letter.
+        // Put each word on its own line. Use smaller font for long names.
         const words = compound.name.split(' ');
-        let displayText = compound.name;
-        if (words.length === 2) {
-            displayText = words[0] + '\n' + words[1];
-        }
+        const displayText = words.join('\n');
+        const longestWord = words.reduce((a, b) => a.length > b.length ? a : b, '');
+        // If the longest word is 8+ chars, shrink font to fit
+        const fontSize = longestWord.length >= 8 ? '12px' : '14px';
 
         const compoundText = this.add.text(x, y + 50, displayText, {
-            fontSize: '18px', // Larger
+            fontSize: fontSize,
             fill: '#ffffff',
-            fontFamily: 'Verdana', // Strict
-            fontStyle: 'bold',     // Bold
+            fontFamily: 'Verdana',
+            fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 5,    // Thicker
+            strokeThickness: 4,
             align: 'center'
         }).setOrigin(0.5, 0);
 
@@ -881,47 +1188,291 @@ export class Stage2 extends Phaser.Scene {
         this.createdCompounds.push(compoundImg);
     }
 
-    showClosestHint(elementsInZone) {
-        this.input.enabled = false;
-        this.scientist.setTexture('hint');
 
-        const elementCounts = {};
-        elementsInZone.forEach(element => {
-            elementCounts[element] = (elementCounts[element] || 0) + 1;
-        });
 
-        let bestMatch = null;
-        let bestScore = 0;
+    hideHint() {
+        if (this.currentHint) {
+            this.currentHint.destroy();
+            this.currentHint = null;
+        }
+    }
 
-        compounds.forEach(compound => {
-            if (!compoundInventory.hasCompound(compound.name)) {
-                let score = 0;
-                for (let [element, count] of compound.property) {
-                    const elementName = element.name.toLowerCase();
-                    if (elementCounts[elementName]) {
-                        score += Math.min(elementCounts[elementName], count);
-                    }
-                }
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMatch = compound;
-                }
-            }
-        });
+    showHint(data) {
+        // Destroy previous hint if exists
+        this.hideHint();
 
-        const hintCompound = bestMatch || compounds.find(c => !compoundInventory.hasCompound(c.name));
-        // Position hint near scientist (speech bubble) - leveled with face at Y=380
-        const hintImg = this.add.image(1350, 380, hintCompound.textureKey + '_hint')
-            .setOrigin(0.5)
-            .setScale(0.5)
-            .setDepth(1001);
+        // Verify texture exists in Phaser cache before rendering
+        const textureExists = this.textures.exists(data.image);
+        if (!textureExists && data.image) {
+            console.log('HINT WARNING: Texture key "' + data.image + '" NOT in Phaser cache.');
+            return;
+        }
 
-        this.time.delayedCall(4000, () => {
-            hintImg.destroy();
-            this.scientist.setTexture('default');
-            this.input.enabled = true;
-            this.clearDropZone();
-        });
+        // UNIFIED POSITION: Same coordinates and dimensions as wrong_formula.png
+        // Depth 1010 forces hint to absolute front above all UI elements
+        const hintContainer = this.add.container(1200, 300);
+        hintContainer.setDepth(1010);
+        hintContainer.setAlpha(1);
+        this.currentHint = hintContainer;
+
+        // Hint image at same scale and position as wrong_formula.png
+        if (data.image && textureExists) {
+            const img = this.add.image(0, 0, data.image);
+            img.setOrigin(0.5);
+            img.setScale(0.7);
+            img.setAlpha(1);
+            hintContainer.add(img);
+        }
+
+        // PERSISTENT DISPLAY: No auto-expire timer.
+        // Hint stays visible until Combine or Clear is clicked.
+    }
+
+    updateBeakerState() {
+        // TARGET-BASED PRIORITY HINT SYSTEM
+        // Maps beaker contents to target-compound hint PNGs.
+        // Multi-element combos take priority over single-element hints.
+        // Only uses files verified in /hints/ folder.
+
+        const keys = this.elementsInZone.map(el => el.texture.key);
+        if (keys.length === 0) return;
+
+        // Helper: check if any of the texture keys match
+        const has = (id) => keys.includes(id);
+
+        // ══════════════════════════════════════════════════
+        // PRIORITY RULES (checked top-to-bottom, first wins)
+        // Multi-element combos MUST come before single-element.
+        // ══════════════════════════════════════════════════
+
+        // ── MULTI-ELEMENT COMBOS (highest priority) ──
+
+        // Na + O + H  →  NaOH.png  (takes priority over h2o or nacl)
+        if (has('sodium') && has('oxygen') && has('hydrogen')) {
+            this.showHint({ image: 'hint_naoh' });
+            return;
+        }
+
+        // H + Cl  →  HCl.png
+        if (has('hydrogen') && has('chlorine')) {
+            this.showHint({ image: 'hint_hcl' });
+            return;
+        }
+
+        // Mg + O2  →  mgo2flame.png (combustion hint)
+        if (has('magnesium') && has('o2')) {
+            this.showHint({ image: 'mgo2flame' });
+            return;
+        }
+
+        // Mg + Cl2  →  mgcl2.png
+        if (has('magnesium') && has('cl2')) {
+            this.showHint({ image: 'mgcl2' });
+            return;
+        }
+
+        // Mg + HCl  →  mghcl.png
+        if (has('magnesium') && has('hydrochloricAcid')) {
+            this.showHint({ image: 'mghcl' });
+            return;
+        }
+
+        // Mg + CuSO4  →  mgcuso4.png
+        if (has('magnesium') && has('copperSulfate')) {
+            this.showHint({ image: 'mgcuso4' });
+            return;
+        }
+
+        // Ca + O2  →  cao2.png
+        if (has('calcium') && has('o2')) {
+            this.showHint({ image: 'cao2' });
+            return;
+        }
+
+        // CH4 + O2  →  ch4o2.png
+        if (has('methane') && has('o2')) {
+            this.showHint({ image: 'hint_ch4o2' });
+            return;
+        }
+
+        // Fe + CuSO4  →  fecuso4.png
+        if (has('iron') && has('copperSulfate')) {
+            this.showHint({ image: 'fecuso4' });
+            return;
+        }
+
+        // Zn + CuSO4  →  zncuso4.png
+        if (has('zinc') && has('copperSulfate')) {
+            this.showHint({ image: 'zncuso4' });
+            return;
+        }
+
+        // Zn + HCl  →  znhcl.png
+        if (has('zinc') && has('hydrochloricAcid')) {
+            this.showHint({ image: 'znhcl' });
+            return;
+        }
+
+        // AgNO3 + NaCl  →  agno3nacl.png
+        if ((has('silverNitrate') || has('agno3')) && (has('sodiumChloride') || has('nacl'))) {
+            this.showHint({ image: 'agno3nacl' });
+            return;
+        }
+
+        // AgNO3 + HCl  →  agno3hcl.png
+        if ((has('silverNitrate') || has('agno3')) && has('hydrochloricAcid')) {
+            this.showHint({ image: 'agno3hcl' });
+            return;
+        }
+
+        // HCl + NaOH  →  hclnaoh.png
+        if (has('hydrochloricAcid') && has('sodiumHydroxide')) {
+            this.showHint({ image: 'hclnaoh' });
+            return;
+        }
+
+        // ── SINGLE-ELEMENT / SINGLE-COMPOUND HINTS ──
+
+        // Mg  →  mgo2flame.png (combustion target)
+        if (has('magnesium')) {
+            this.showHint({ image: 'mgo2flame' });
+            return;
+        }
+
+        // Na or Cl  →  nacl.png
+        if (has('sodium') || has('chlorine')) {
+            this.showHint({ image: 'hint_nacl' });
+            return;
+        }
+
+        // H or O  →  h2o.png
+        if (has('hydrogen') || has('oxygen')) {
+            this.showHint({ image: 'hint_h2o' });
+            return;
+        }
+
+        // Ag (silver element)  →  AgNO3.png
+        if (has('silver')) {
+            this.showHint({ image: 'hint_agno3' });
+            return;
+        }
+
+        // Ca  →  CaCO3.png
+        if (has('calcium')) {
+            this.showHint({ image: 'hint_caco3' });
+            return;
+        }
+
+        // C  →  ch4o2.png (methane combustion target)
+        if (has('carbon')) {
+            this.showHint({ image: 'hint_ch4o2' });
+            return;
+        }
+
+        // Cu or S  →  CuSO4.png
+        if (has('copper') || has('sulfur')) {
+            this.showHint({ image: 'hint_cuso4' });
+            return;
+        }
+
+        // Iron  →  fecuso4.png
+        if (has('iron')) {
+            this.showHint({ image: 'fecuso4' });
+            return;
+        }
+
+        // Zinc  →  znhcl.png
+        if (has('zinc')) {
+            this.showHint({ image: 'znhcl' });
+            return;
+        }
+
+        // ── COMPOUND HINTS (dragged from shelf) ──
+
+        // H2O  →  h2oelectric.png
+        if (has('h2o')) {
+            this.showHint({ image: 'h2oelectric' });
+            return;
+        }
+
+        // CaCO3  →  caco3heat.png
+        if (has('caco3') || has('calciumCarbonate')) {
+            this.showHint({ image: 'caco3heat' });
+            return;
+        }
+
+        // NaCl (compound from shelf)  →  naclelectric.png
+        if (has('sodiumChloride') || has('nacl')) {
+            this.showHint({ image: 'naclelectric' });
+            return;
+        }
+
+        // HCl (compound from shelf)  →  hclnaoh.png
+        if (has('hydrochloricAcid')) {
+            this.showHint({ image: 'hclnaoh' });
+            return;
+        }
+
+        // AgNO3 (compound from shelf)  →  agno3nacl.png
+        if (has('silverNitrate') || has('agno3')) {
+            this.showHint({ image: 'agno3nacl' });
+            return;
+        }
+
+        // NaOH (compound from shelf)  →  hclnaoh.png
+        if (has('sodiumHydroxide')) {
+            this.showHint({ image: 'hclnaoh' });
+            return;
+        }
+
+        // CuSO4 (compound from shelf)  →  fecuso4.png
+        if (has('copperSulfate')) {
+            this.showHint({ image: 'fecuso4' });
+            return;
+        }
+
+        // CH4 (methane from shelf)  →  ch4o2.png
+        if (has('methane')) {
+            this.showHint({ image: 'hint_ch4o2' });
+            return;
+        }
+
+        // O2 gas  →  mgo2flame.png
+        if (has('o2')) {
+            this.showHint({ image: 'mgo2flame' });
+            return;
+        }
+
+        // Cl2 gas  →  mgcl2.png
+        if (has('cl2')) {
+            this.showHint({ image: 'mgcl2' });
+            return;
+        }
+
+        // No match — do not show a hint
+    }
+
+    // Centralized energy button reset - called after every combine press
+    resetEnergyButtons() {
+        // Reset all energy visual states to unpressed
+        this.initialHeatBtn.setVisible(true);
+        this.initialHeatBtnPressed.setVisible(false);
+        this.initialHeatBtn.setInteractive();
+        this.initialHeatButtonPressed = false;
+
+        this.highHeatBtn.setVisible(true);
+        this.highHeatBtnPressed.setVisible(false);
+        this.highHeatBtn.setInteractive();
+        this.highHeatButtonPressed = false;
+
+        this.electricBtn.setVisible(true);
+        this.electricBtnPressed.setVisible(false);
+        this.electricBtn.setInteractive();
+        this.electricButtonPressed = false;
+
+        // Clear energy source and visual effects
+        this.hideAllAnimations();
+        this.activeEnergySource = null;
     }
 
     showWrongFormulaMessage() {
@@ -931,7 +1482,7 @@ export class Stage2 extends Phaser.Scene {
         const wrongFormulaImg = this.add.image(1200, 300, 'wrong_formula')
             .setOrigin(0.5)
             .setScale(0.7)
-            .setDepth(1001);
+            .setDepth(999);
 
         this.time.delayedCall(4000, () => {
             wrongFormulaImg.destroy();
@@ -948,7 +1499,7 @@ export class Stage2 extends Phaser.Scene {
         const alreadyFormulatedImg = this.add.image(1200, 300, 'already_formulated')
             .setOrigin(0.5)
             .setScale(0.7)
-            .setDepth(1001);
+            .setDepth(999);
 
         this.time.delayedCall(4000, () => {
             alreadyFormulatedImg.destroy();
@@ -1031,151 +1582,7 @@ export class Stage2 extends Phaser.Scene {
         this.hideHint(); // Hide hint when beaker is cleared
     }
 
-    checkAndShowHint() {
-        // Get current elements in beaker
-        const elementsInBeaker = this.elementsInZone.map(el => el.getData('textureKey'));
 
-        console.log('=== HINT CHECK ===');
-        console.log('Elements in beaker:', elementsInBeaker);
-        console.log('Count:', elementsInBeaker.length);
-        console.log('Active energy source:', this.activeEnergySource);
-
-        // Only show hints if exactly 1 element/compound is in beaker
-        if (elementsInBeaker.length !== 1) {
-            this.hideHint();
-            return;
-        }
-
-        const singleElement = elementsInBeaker[0];
-        console.log('Single element:', singleElement);
-
-        // Special Override: Completely suppress hint for Chlorine (Cl)
-        // This matches Stage 1 behavior where Cl drag is silent.
-        if (singleElement === 'chlorine') {
-            this.hideHint();
-            return;
-        }
-
-        // Find reactions that could use this element
-        for (const reaction of this.reactionSystem.reactions) {
-            if (!reaction.hint) continue;
-
-            // Check if this element is one of the reactants
-            const symbols = this.reactionSystem.getSymbolsFromKeys([singleElement]);
-            const normalizedSymbol = symbols[0];
-
-            console.log('Checking reaction:', reaction.equation);
-            console.log('Normalized symbol:', normalizedSymbol);
-            console.log('Reaction energy source:', reaction.energy_source);
-
-            // Check if this symbol is in the reaction's reactants
-            const reactionSymbols = reaction.reactants.map(r => this.reactionSystem.normalizeSymbol(r));
-            console.log('Reaction symbols:', reactionSymbols);
-
-            if (reactionSymbols.includes(normalizedSymbol)) {
-                // Found a matching reaction
-
-                // Check if this reaction requires energy but energy is NOT applied
-                const requiresEnergy = reaction.energy_source !== null && reaction.energy_source !== undefined;
-                const energyApplied = this.activeEnergySource !== null;
-
-                console.log('Requires energy:', requiresEnergy);
-                console.log('Energy applied:', energyApplied);
-
-                // Show hint only if:
-                // 1. Reaction requires energy AND energy is NOT applied yet
-                // OR
-                // 2. Reaction doesn't require energy (normal synthesis)
-                if (requiresEnergy && !energyApplied) {
-                    // Show hint for missing energy
-                    console.log('MATCH! Showing hint (missing energy):', reaction.hint);
-                    this.showHint(singleElement, reaction);
-                    return;
-                } else if (!requiresEnergy) {
-                    // Show hint for normal reactions (missing second reactant)
-                    console.log('MATCH! Showing hint (missing reactant):', reaction.hint);
-                    this.showHint(singleElement, reaction);
-                    return;
-                }
-            }
-        }
-
-        // No hint found, hide any existing hint
-        console.log('No hint found for:', singleElement);
-        this.hideHint();
-    }
-
-    showHint(elementKey, reaction) {
-        // Hide existing hint first
-        this.hideHint();
-
-        // Map reaction equations to hint image names
-        // ONLY include reactions that have actual hint images in assets/speech/hint/
-        const hintImageMap = {
-            // Based on actual hint image filenames:
-            // agno3hcl.png, agno3nacl.png, caco4heat.png, calciumCarbonate.png,
-            // cao2.png, ch4o2.png, copperSulfate.png, h2oelectric.png,
-            // hclnaoh.png, hydrochloricAcid.png, methane.png, mgcl2.png,
-            // mgcuso4.png, mghcl.png, mgo2flame.png, silverNitrate.png,
-            // sodiumChloride.png, sodiumHydroxide.png, water.png,
-            // zncuso4.png, znhcl.png
-
-            '2Mg + O2 â†’ 2MgO': 'mgo2flame',
-            'Mg + Cl2 â†’ MgCl2': 'mgcl2',
-            '2Ca + O2 â†’ 2CaO': 'cao2',
-            'CH4 + 2O2 â†’ CO2 + 2H2O': 'ch4o2',
-            '2H2O â†’ 2H2 + O2': 'h2oelectric',
-            'CaCO3 â†’ CaO + CO2': 'caco3heat',
-            '2NaCl â†’ 2Na + Cl2': 'sodiumChloride_hint',
-            'Zn + 2HCl â†’ ZnCl2 + H2': 'znhcl',
-            'Mg + 2HCl â†’ MgCl2 + H2': 'mghcl',
-            'Fe + CuSO4 â†’ FeSO4 + Cu': 'fecuso4',
-            'Zn + CuSO4 â†’ ZnSO4 + Cu': 'zncuso4',
-            'AgNO3 + NaCl â†’ AgCl(s) + NaNO3': 'agno3nacl',
-            'AgNO3 + HCl â†’ AgCl(s) + HNO3': 'agno3hcl',
-            'HCl + NaOH â†’ NaCl + H2O': 'hclnaoh',
-            'CH4 + 2O2 â†’ CO2 + 2H2O': 'ch4o2_hint'
-        };
-
-        const hintImageName = hintImageMap[reaction.equation];
-
-        if (!hintImageName) {
-            console.log('No hint image for this reaction:', reaction.equation);
-            return; // Don't show hint if no image exists
-        }
-
-        // Special override: User requested NO hint for Chlorine
-        if (reaction.equation.includes('2Na + Cl2')) {
-            return;
-        }
-
-        // Display hint image near scientist like a speech bubble - leveled with face at Y=380
-        this.currentHintImage = this.add.image(1350, 380, hintImageName)
-            .setOrigin(0.5)
-            .setScale(0.5)  // Slightly larger for speech bubble effect
-            .setDepth(1001)
-            .setAlpha(0);
-
-        // Fade in animation
-        this.tweens.add({
-            targets: this.currentHintImage,
-            alpha: 1,
-            duration: 300
-        });
-
-        console.log(`Showing hint for ${elementKey} (${reaction.equation}): ${reaction.hint}`);
-    }
-
-    hideHint() {
-        if (this.currentHintImage) {
-            this.currentHintImage.destroy();
-            this.currentHintImage = null;
-        }
-        if (this.currentHintText) {
-            this.currentHintText.destroy();
-            this.currentHintText = null;
-        }
-    }
 
 
     playReactionEffect(reaction, callback) {
@@ -1394,28 +1801,49 @@ export class Stage2 extends Phaser.Scene {
         // 1. Add to history for ALL reaction types
         this.addToHistory(reaction);
 
-        // 2. Unlock Products on Shelf
+        // 2. Unlock Products on Shelf & Check Milestones
         reaction.products.forEach(productSymbol => {
             const compound = compounds.find(c => c.symbol === productSymbol);
             if (compound) {
-                if (['H2', 'O2', 'Cl2'].includes(compound.symbol)) return;
-
-                if (!compoundInventory.hasCompound(compound.name)) {
-                    compoundInventory.addCompound(compound.name);
+                // addCompound handles duplicates (blocks non-gas, allows gas) and capacity
+                const added = compoundInventory.addCompound(compound.name);
+                if (added) {
                     this.displayCompoundInInventory(compound);
                 }
             }
         });
 
-        // 3. Handle SYNTHESIS - Show full celebration screen (like Stage 1)
+        // CHECK MILESTONES (Global State)
+        const uniqueCount = compoundInventory.getUniqueNonGasCount();
+
+        // Check milestones based on strict thresholds
+        if (uniqueCount === 5 && !compoundInventory.hasShownBronze) {
+            compoundInventory.hasShownBronze = true;
+            this.time.delayedCall(1000, () => {
+                this.showAchievementBadge('bronze');
+                this.showMissionMessage("MISSION: Unlock 5 more recipes to reveal the Decomposition Guide!");
+            });
+        }
+        else if (uniqueCount === 10 && !compoundInventory.hasShownSilver) {
+            compoundInventory.hasShownSilver = true;
+            this.time.delayedCall(1000, () => {
+                this.showAchievementBadge('silver');
+            });
+        }
+        else if (uniqueCount >= 12 && !compoundInventory.isMasterUnlocked) {
+            compoundInventory.isMasterUnlocked = true;
+            this.time.delayedCall(1000, () => this.showAchievementBadge('master'));
+        }
+
+        // 3. Handle SYNTHESIS - Show full celebration screen (ALL products including gases)
         if (reaction.type === 'synthesis') {
-            // Find the first compound that was created
+            // Find the first compound product
             const newCompound = reaction.products
                 .map(symbol => compounds.find(c => c.symbol === symbol))
-                .find(c => c && !['H2', 'O2', 'Cl2'].includes(c.symbol));
+                .find(c => c !== undefined);
 
             if (newCompound) {
-                // Show full celebration screen and clear beaker
+                // Full Celebration for ALL synthesis products (including O2, Cl2, H2)
                 this.showCongratsScreen(newCompound);
             }
             return;
@@ -1501,7 +1929,12 @@ export class Stage2 extends Phaser.Scene {
         // Energy (if applicable)
         let energyText = null;
         if (reaction.energy_source) {
-            energyText = this.add.text(928, 600, `âš¡ Energy Required: ${reaction.energy_source}`, {
+            let energyName = reaction.energy_source;
+            if (energyName === 'initial_heat') energyName = 'Initial Heat';
+            else if (energyName === 'electricity') energyName = 'Electricity';
+            else if (energyName === 'high_heat') energyName = 'High Heat';
+
+            energyText = this.add.text(928, 600, `⚡ Energy Required: ${energyName}`, {
                 fontSize: '28px',
                 fill: '#e67e22',
                 fontStyle: 'bold',
@@ -2088,4 +2521,6 @@ export class Stage2 extends Phaser.Scene {
             }
         });
     }
+
+
 }

@@ -5,6 +5,7 @@ export class Start extends Phaser.Scene {
 
     constructor() {
         super('Start');
+        this.currentHint = null;
     }
 
     preload() {
@@ -35,10 +36,39 @@ export class Start extends Phaser.Scene {
             this.load.image(compound.textureKey, compound.imagePath);
             this.load.image(compound.textureKey + '_hint', compound.hint);
         });
+
+        // ── TARGET-COMPOUND HINTS (formula-named, shown proactively) ──
+        this.load.image('hint_h2o', 'assets/speech/hint/h2o.png');
+        this.load.image('hint_nacl', 'assets/speech/hint/nacl.png');
+        this.load.image('hint_naoh', 'assets/speech/hint/NaOH.png');
+        this.load.image('hint_agno3', 'assets/speech/hint/AgNO3.png');
+        this.load.image('hint_caco3', 'assets/speech/hint/CaCO3.png');
+        this.load.image('hint_cuso4', 'assets/speech/hint/CuSO4.png');
+        this.load.image('hint_hcl', 'assets/speech/hint/HCl.png');
+        this.load.image('hint_ch4o2', 'assets/speech/hint/ch4o2.png');
+
+        // ── REACTION HINTS ──
+        this.load.image('mgo2flame', 'assets/speech/hint/mgo2flame.png');
+        this.load.image('mgcl2', 'assets/speech/hint/mgcl2.png');
+        this.load.image('mghcl', 'assets/speech/hint/mghcl.png');
+        this.load.image('mgcuso4', 'assets/speech/hint/mgcuso4.png');
+        this.load.image('fecuso4', 'assets/speech/hint/fecuso4.png');
+        this.load.image('zncuso4', 'assets/speech/hint/zncuso4.png');
+        this.load.image('znhcl', 'assets/speech/hint/znhcl.png');
+        this.load.image('agno3nacl', 'assets/speech/hint/agno3nacl.png');
+        this.load.image('agno3hcl', 'assets/speech/hint/agno3hcl.png');
+        this.load.image('hclnaoh', 'assets/speech/hint/hclnaoh.png');
+        this.load.image('caco3heat', 'assets/speech/hint/caco3heat.png');
+        this.load.image('naclelectric', 'assets/speech/hint/naclelectric.png');
+        this.load.image('h2oelectric', 'assets/speech/hint/h2oelectric.png');
+        this.load.image('cao2', 'assets/speech/hint/cao2.png');
     }
 
     create() {
         console.log("✅ START SCENE - NEW VERSION LOADED ✅");
+
+        // Notify that the game is ready (Hides Skeleton)
+        window.dispatchEvent(new Event('game-ready'));
 
         this.add.image(928, 522, 'background').setDisplaySize(1856, 1044);
         this.shelf = this.add.image(-200, 1200, 'shelf').setOrigin(0, 1).setScale(1).setDepth(1);
@@ -146,6 +176,9 @@ export class Start extends Phaser.Scene {
                 yoyo: true,
                 repeat: -1
             });
+
+            // HINT TRIGGER: Fire on every drop for dynamic narrowing
+            this.updateBeakerState();
         });
 
         this.input.on('dragend', (pointer, gameObject) => {
@@ -179,6 +212,9 @@ export class Start extends Phaser.Scene {
             this.combineBtn.setVisible(false);
             this.combineBtnPressed.setVisible(true);
             this.combineBtn.disableInteractive();
+
+            // CLEAR ANY VISIBLE HINT before showing result
+            this.hideHint();
 
             // Check for compound combinations
             const elementsInZone = this.elementsInZone.map(element => element.texture.key);
@@ -214,6 +250,9 @@ export class Start extends Phaser.Scene {
             this.clearBtn.setVisible(false);
             this.clearBtnPressed.setVisible(true);
             this.clearBtn.disableInteractive();
+
+            // CLEAR HINT when beaker is cleared
+            this.hideHint();
 
             // Clear all elements in drop zone
             this.elementsInZone.forEach(element => {
@@ -300,6 +339,8 @@ export class Start extends Phaser.Scene {
         const toolGap = 85;
         let currentToolY = 50;
 
+
+
         const buttonStyle = {
             fontSize: '22px',
             fill: '#ffffff',
@@ -310,6 +351,32 @@ export class Start extends Phaser.Scene {
             padding: { x: 30, y: 15 },
             shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, stroke: true, fill: true }
         };
+
+        // EXIT BUTTON (Top Left) - Tab Style
+        const exitBtn = this.add.text(0, 50, '✕ EXIT', {
+            ...buttonStyle,
+            backgroundColor: '#c0392b', // Red
+            fixedWidth: 120,
+            align: 'center',
+            padding: { x: 10, y: 15 } // Adjust padding for tab look
+        })
+            .setOrigin(0, 0) // Anchor top-left
+            .setInteractive({ cursor: 'pointer' })
+            .setDepth(1000) // Layering: z-index 1000 equivalent
+            .setScrollFactor(0);
+
+        // Add a "Tab" shape mask or background if needed, but text with background color works as a simple tab
+        // To make it look "clipped", x=0 is good.
+
+        exitBtn.on('pointerover', () => {
+            exitBtn.setBackgroundColor('#e74c3c');
+        });
+        exitBtn.on('pointerout', () => {
+            exitBtn.setBackgroundColor('#c0392b');
+        });
+        exitBtn.on('pointerdown', () => {
+            window.location.href = 'index.html?showThanks=true';
+        });
 
         // 1. TUTORIAL (Top)
         const tutorialBtn = this.add.text(toolX, currentToolY, '📖 TUTORIAL', {
@@ -379,6 +446,11 @@ export class Start extends Phaser.Scene {
             x = slot.x;
             y = slot.y;
             scale = compound.scale;
+            // Gas sprites are 20% smaller than solids for visual distinction
+            const gasKeys = ['h2', 'o2', 'cl2'];
+            if (gasKeys.includes(compound.textureKey)) {
+                scale = scale * 0.8;
+            }
             this.nextSlotIndex++;
         }
 
@@ -387,19 +459,21 @@ export class Start extends Phaser.Scene {
             .setScale(scale)
             .setInteractive();
 
+        // WORD-SNAPPING FIX: Never break words mid-letter.
+        // Put each word on its own line. Use smaller font for long names.
         const words = compound.name.split(' ');
-        let displayText = compound.name;
-        if (words.length === 2) {
-            displayText = words[0] + '\n' + words[1];
-        }
+        const displayText = words.join('\n');
+        const longestWord = words.reduce((a, b) => a.length > b.length ? a : b, '');
+        // If the longest word is 8+ chars, shrink font to fit
+        const fontSize = longestWord.length >= 8 ? '12px' : '14px';
 
         const compoundText = this.add.text(x, y + 50, displayText, {
-            fontSize: '18px',
+            fontSize: fontSize,
             fill: '#ffffff',
             fontFamily: 'Verdana',
             fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 5,
+            strokeThickness: 4,
             align: 'center'
         }).setOrigin(0.5, 0);
 
@@ -421,18 +495,263 @@ export class Start extends Phaser.Scene {
     }
 
     addCompoundToInventory(compound) {
-        compoundInventory.addCompound(compound.name);
+        if (!compoundInventory.addCompound(compound.name)) {
+            // If false, it was a duplicate (and not a gas), so don't show congrats or badges
+            if (!['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas'].includes(compound.name)) {
+                this.showAlreadyFormulatedMessage();
+            }
+            return;
+        }
+
         this.showCongratsScreen(compound);
         this.displayCompoundInInventory(compound);
+
+        // CHECK MILESTONES (Global State)
+        const uniqueCount = compoundInventory.getUniqueNonGasCount();
+
+        if (uniqueCount >= 13 && !compoundInventory.isMasterUnlocked) { // Reduced from 19 to 13 relative to recipe list size or keep 100% logic
+            // logic implies 100% completion. Let's assume 100% is when all recipes are done. 
+            // For now, let's stick to the prompt's "100% Completion" which might be dynamic.
+            // But prompt says: "At 100% Completion: Show Master Gold Badge".
+            // Let's use a safe high number or check total available. 
+            // The prompt has specific triggers: 5 -> Bronze, 10 -> Silver.
+            // Let's stick to the prompt strict rule: "At 5... At 10...".
+        }
+
+        // Check milestones based on strict thresholds
+        if (uniqueCount === 5 && !compoundInventory.hasShownBronze) {
+            compoundInventory.hasShownBronze = true;
+            this.time.delayedCall(2000, () => {
+                this.showAchievementBadge('bronze');
+                // Trigger Mission Message
+                this.showMissionMessage("MISSION: Unlock 5 more recipes to reveal the Decomposition Guide!");
+            });
+        }
+        else if (uniqueCount === 10 && !compoundInventory.hasShownSilver) {
+            compoundInventory.hasShownSilver = true;
+            this.time.delayedCall(2000, () => {
+                this.showAchievementBadge('silver');
+                // Reveal is automatic in recipe book next time it opens
+            });
+        }
+
+        // Check for "Master" (Assuming 100% is ~12-15 compounds based on provided lists)
+        // Hardcoded 12 for now as "100%" or check if all possible compounds are found.
+        // Synthesis (9) + Decomp (3) = 12 total distinct products roughly.
+        if (uniqueCount >= 12 && !compoundInventory.isMasterUnlocked) {
+            compoundInventory.isMasterUnlocked = true;
+            this.time.delayedCall(2000, () => this.showAchievementBadge('master'));
+        }
+    }
+
+    showMissionMessage(msg) {
+        const missionBox = document.createElement('div');
+        missionBox.style.cssText = `
+            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8); border: 2px solid #3498db;
+            color: #ecf0f1; padding: 20px 40px; font-family: 'Verdana', sans-serif;
+            font-size: 20px; font-weight: bold; border-radius: 10px;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); z-index: 2000;
+            text-align: center;
+        `;
+        missionBox.innerText = msg;
+        document.body.appendChild(missionBox);
+
+        setTimeout(() => {
+            missionBox.style.transition = 'opacity 1s';
+            missionBox.style.opacity = '0';
+            setTimeout(() => missionBox.remove(), 1000);
+        }, 4000);
+    }
+
+    showAchievementBadge(tier) {
+        const config = {
+            bronze: { css: 'border: 3px solid #cd7f32; color: #cd7f32; box-shadow: 0 0 15px #cd7f32;', symbol: '5', label: 'BRONZE ALCHEMIST' },
+            silver: { css: 'border: 3px solid #c0c0c0; color: #c0c0c0; box-shadow: 0 0 15px #c0c0c0;', symbol: '10', label: 'SILVER CHEMIST' },
+            master: { css: 'border: 3px solid #ffd700; color: #ffd700; box-shadow: 0 0 25px #ffd700;', symbol: 'M', label: 'MASTER ALCHEMIST' }
+        }[tier];
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'achievement-badge';
+        wrapper.style.cssText = `
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 80px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; background: rgba(0,0,0,0.9);
+            z-index: 5000; animation: badgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            ${config.css}
+        `;
+
+        wrapper.innerHTML = `
+            <div style="font-size: 32px; font-weight: 900; font-family: 'Verdana';">${config.symbol}</div>
+            <div style="position: absolute; bottom: -40px; white-space: nowrap; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 0 #000;">${config.label}</div>
+        `;
+        document.body.appendChild(wrapper);
+
+        // Add keyframes if not exists
+        if (!document.getElementById('badge-style')) {
+            const style = document.createElement('style');
+            style.id = 'badge-style';
+            style.innerHTML = `@keyframes badgePop { 0% { transform: translateX(-50%) scale(0); } 100% { transform: translateX(-50%) scale(1); } }`;
+            document.head.appendChild(style);
+        }
+
+        if (tier === 'master') {
+            this.triggerSparkle();
+        }
+
+        setTimeout(() => {
+            wrapper.style.transition = 'opacity 0.5s, transform 0.5s';
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateX(-50%) translateY(-20px)';
+            setTimeout(() => wrapper.remove(), 500);
+        }, 4000);
+    }
+
+    triggerSparkle() {
+        const sparkleOverlay = document.createElement('div');
+        sparkleOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;';
+        document.body.appendChild(sparkleOverlay);
+
+        const colors = ['#FFD700', '#FFF', '#FFA500'];
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.innerText = '✨';
+            star.style.cssText = `
+                position: absolute; font-size: ${10 + Math.random() * 20}px;
+                left: ${Math.random() * 100}%; top: ${Math.random() * 100}%;
+                color: ${colors[Math.floor(Math.random() * colors.length)]};
+                opacity: 0; animation: sparkleAnim ${1 + Math.random()}s linear forwards;
+                animation-delay: ${Math.random() * 0.5}s;
+            `;
+            sparkleOverlay.appendChild(star);
+        }
+
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes sparkleAnim { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1.5); } 100% { opacity: 0; transform: scale(0); } }`;
+        sparkleOverlay.appendChild(style);
+
+        setTimeout(() => sparkleOverlay.remove(), 2000);
+    }
+
+    createCheatSheet() {
+        // Placeholder to satisfy engine if called, but we use toggleRecipeBook logic
+    }
+
+    toggleCheatSheet() {
+        // Redirect to new DOM method
+        this.toggleRecipeBook();
+    }
+
+    toggleRecipeBook() {
+        // Toggle existence of DOM element
+        const existing = document.getElementById('recipe-book-overlay');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+
+        // Data Source
+        const uniqueCount = compoundInventory.getUniqueNonGasCount();
+        const showDecomp = uniqueCount >= 10;
+
+        const synthesisRecipes = [
+            { name: "WATER (H₂O)", formula: "H + H + O" },
+            { name: "SALT (NaCl)", formula: "Na + Cl" },
+            { name: "METHANE (CH₄)", formula: "C + 4H" },
+            { name: "CARBON DIOXIDE (CO₂)", formula: "C + 2O" },
+            { name: "CALCIUM CARBONATE", formula: "Ca + C + 3O" },
+            { name: "SILVER NITRATE", formula: "Ag + N + 3O" },
+            { name: "SODIUM HYDROXIDE", formula: "Na + O + H" },
+            { name: "HYDROCHLORIC ACID", formula: "H + Cl" },
+            { name: "COPPER SULFATE", formula: "Cu + S + 4O" }
+        ];
+
+        const decompRecipes = [
+            { name: "WATER → H₂ + O₂", formula: "Water + Electricity (High)" },
+            { name: "SALT → Na + Cl₂", formula: "NaCl + Electricity (Molten)" },
+            { name: "CaCO₃ → CaO + CO₂", formula: "CaCO₃ + Heat (High)" }
+        ];
+
+        // Container
+        const overlay = document.createElement('div');
+        overlay.id = 'recipe-book-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+        `;
+
+        // Click outside to close
+        overlay.onclick = (e) => {
+            if (e.target === overlay) overlay.remove();
+        };
+
+        // Book Content
+        const book = document.createElement('div');
+        book.style.cssText = `
+            width: 500px; max-height: 450px; background: #1a1a1a;
+            border: 2px solid #2ecc71; border-radius: 8px;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+            display: flex; flex-direction: column; overflow: hidden;
+            font-family: 'Verdana', sans-serif;
+        `;
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = `
+            background: #2ecc71; color: #000; padding: 15px;
+            font-weight: bold; font-size: 20px; text-align: center;
+            display: flex; justify-content: space-between; align-items: center;
+        `;
+        header.innerHTML = `<span>🧪 RECIPE BOOK</span><span style="font-size: 14px; opacity: 0.8">Unlocked: ${uniqueCount}</span>`;
+
+        // Scrollable List
+        const list = document.createElement('div');
+        list.style.cssText = `
+            flex: 1; overflow-y: auto; padding: 20px;
+            color: #ecf0f1;
+        `;
+
+        // Helper to render items
+        const renderItem = (item, color) => `
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #333;">
+                <div style="color: ${color}; font-weight: bold; font-size: 16px; margin-bottom: 5px;">${item.name}</div>
+                <div style="color: #bdc3c7; font-size: 14px;">${item.formula}</div>
+            </div>
+        `;
+
+        // 1. Synthesis Section
+        list.innerHTML += `<div style="color: #2ecc71; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #2ecc71; padding-bottom: 5px;">⚗️ SYNTHESIS</div>`;
+        synthesisRecipes.forEach(r => list.innerHTML += renderItem(r, '#ffffff'));
+
+        // 2. Decomposition Section (Gated)
+        list.innerHTML += `<div style="color: #e74c3c; font-weight: bold; margin: 25px 0 15px 0; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">💥 DECOMPOSITION</div>`;
+
+        if (showDecomp) {
+            decompRecipes.forEach(r => list.innerHTML += renderItem(r, '#ffffff'));
+        } else {
+            list.innerHTML += `
+                <div style="background: rgba(231, 76, 60, 0.1); border: 1px dashed #e74c3c; padding: 15px; text-align: center; color: #e74c3c; border-radius: 5px;">
+                    <div>🔒 LOCKED</div>
+                    <div style="font-size: 12px; margin-top: 5px;">Collect 10 Unique Compounds to reveal</div>
+                </div>
+            `;
+        }
+
+        book.appendChild(header);
+        book.appendChild(list);
+
+        // Footer hint
+        const footer = document.createElement('div');
+        footer.style.cssText = "padding: 10px; background: #222; text-align: center; color: #777; font-size: 12px; font-style: italic;";
+        footer.innerText = "(Click outside to close)";
+        book.appendChild(footer);
+
+        overlay.appendChild(book);
+        document.body.appendChild(overlay);
     }
 
     showClosestHint(elementsInZone) {
-        // Disable input
-        this.input.enabled = false;
-
-        // Change scientist to hint
-        this.scientist.setTexture('hint');
-
         // Count elements in drop zone
         const elementCounts = {};
         elementsInZone.forEach(element => {
@@ -604,10 +923,278 @@ export class Start extends Phaser.Scene {
         this.elementsInZone = [];
     }
 
+    hideHint() {
+        if (this.currentHint) {
+            this.currentHint.destroy();
+            this.currentHint = null;
+        }
+    }
+
+    showHint(data) {
+        // Destroy previous hint if exists
+        this.hideHint();
+
+        // Verify texture exists in Phaser cache before rendering
+        const textureExists = this.textures.exists(data.image);
+        if (!textureExists && data.image) {
+            console.log('HINT WARNING: Texture key "' + data.image + '" NOT in Phaser cache.');
+            return;
+        }
+
+        // UNIFIED POSITION: Same coordinates and dimensions as wrong_formula.png
+        // Depth 1010 forces hint to absolute front above all UI elements
+        const hintContainer = this.add.container(1200, 300);
+        hintContainer.setDepth(1010);
+        hintContainer.setAlpha(1);
+        this.currentHint = hintContainer;
+
+        // Hint image at same scale and position as wrong_formula.png
+        if (data.image && textureExists) {
+            const img = this.add.image(0, 0, data.image);
+            img.setOrigin(0.5);
+            img.setScale(0.7);
+            img.setAlpha(1);
+            hintContainer.add(img);
+        }
+
+        // PERSISTENT DISPLAY: Hint stays visible until Combine or Clear is clicked.
+    }
+
+    updateBeakerState() {
+        // TARGET-BASED PRIORITY HINT SYSTEM
+        // Identical to Stage 2. Maps beaker contents to target-compound hint PNGs.
+        // Multi-element combos take priority over single-element hints.
+
+        const keys = this.elementsInZone.map(el => el.texture.key);
+        if (keys.length === 0) return;
+
+        const has = (id) => keys.includes(id);
+
+        // ── MULTI-ELEMENT COMBOS (highest priority) ──
+
+        // Na + O + H  →  NaOH.png
+        if (has('sodium') && has('oxygen') && has('hydrogen')) {
+            this.showHint({ image: 'hint_naoh' });
+            return;
+        }
+
+        // Cu + S + O  →  CuSO4.png
+        if (has('copper') && has('sulfur') && has('oxygen')) {
+            this.showHint({ image: 'hint_cuso4' });
+            return;
+        }
+
+        // H + Cl  →  HCl.png
+        if (has('hydrogen') && has('chlorine')) {
+            this.showHint({ image: 'hint_hcl' });
+            return;
+        }
+
+        // Mg + O2  →  mgo2flame.png
+        if (has('magnesium') && has('o2')) {
+            this.showHint({ image: 'mgo2flame' });
+            return;
+        }
+
+        // Mg + Cl2  →  mgcl2.png
+        if (has('magnesium') && has('cl2')) {
+            this.showHint({ image: 'mgcl2' });
+            return;
+        }
+
+        // Mg + HCl  →  mghcl.png
+        if (has('magnesium') && has('hydrochloricAcid')) {
+            this.showHint({ image: 'mghcl' });
+            return;
+        }
+
+        // Mg + CuSO4  →  mgcuso4.png
+        if (has('magnesium') && has('copperSulfate')) {
+            this.showHint({ image: 'mgcuso4' });
+            return;
+        }
+
+        // Ca + O2  →  cao2.png
+        if (has('calcium') && has('o2')) {
+            this.showHint({ image: 'cao2' });
+            return;
+        }
+
+        // CH4 + O2  →  ch4o2.png
+        if (has('methane') && has('o2')) {
+            this.showHint({ image: 'hint_ch4o2' });
+            return;
+        }
+
+        // Fe + CuSO4  →  fecuso4.png
+        if (has('iron') && has('copperSulfate')) {
+            this.showHint({ image: 'fecuso4' });
+            return;
+        }
+
+        // Zn + CuSO4  →  zncuso4.png
+        if (has('zinc') && has('copperSulfate')) {
+            this.showHint({ image: 'zncuso4' });
+            return;
+        }
+
+        // Zn + HCl  →  znhcl.png
+        if (has('zinc') && has('hydrochloricAcid')) {
+            this.showHint({ image: 'znhcl' });
+            return;
+        }
+
+        // AgNO3 + NaCl  →  agno3nacl.png
+        if ((has('silverNitrate') || has('agno3')) && (has('sodiumChloride') || has('nacl'))) {
+            this.showHint({ image: 'agno3nacl' });
+            return;
+        }
+
+        // AgNO3 + HCl  →  agno3hcl.png
+        if ((has('silverNitrate') || has('agno3')) && has('hydrochloricAcid')) {
+            this.showHint({ image: 'agno3hcl' });
+            return;
+        }
+
+        // HCl + NaOH  →  hclnaoh.png
+        if (has('hydrochloricAcid') && has('sodiumHydroxide')) {
+            this.showHint({ image: 'hclnaoh' });
+            return;
+        }
+
+        // ── SINGLE-ELEMENT / SINGLE-COMPOUND HINTS ──
+
+        // Mg  →  mgo2flame.png
+        if (has('magnesium')) {
+            this.showHint({ image: 'mgo2flame' });
+            return;
+        }
+
+        // Na or Cl  →  nacl.png
+        if (has('sodium') || has('chlorine')) {
+            this.showHint({ image: 'hint_nacl' });
+            return;
+        }
+
+        // H or O  →  h2o.png
+        if (has('hydrogen') || has('oxygen')) {
+            this.showHint({ image: 'hint_h2o' });
+            return;
+        }
+
+        // Ag  →  AgNO3.png
+        if (has('silver')) {
+            this.showHint({ image: 'hint_agno3' });
+            return;
+        }
+
+        // Ca  →  CaCO3.png
+        if (has('calcium')) {
+            this.showHint({ image: 'hint_caco3' });
+            return;
+        }
+
+        // C  →  ch4o2.png
+        if (has('carbon')) {
+            this.showHint({ image: 'hint_ch4o2' });
+            return;
+        }
+
+        // Cu or S  →  CuSO4.png
+        if (has('copper') || has('sulfur')) {
+            this.showHint({ image: 'hint_cuso4' });
+            return;
+        }
+
+        // Iron  →  fecuso4.png
+        if (has('iron')) {
+            this.showHint({ image: 'fecuso4' });
+            return;
+        }
+
+        // Zinc  →  znhcl.png
+        if (has('zinc')) {
+            this.showHint({ image: 'znhcl' });
+            return;
+        }
+
+        // ── COMPOUND HINTS (dragged from shelf) ──
+
+        // H2O  →  h2oelectric.png
+        if (has('h2o')) {
+            this.showHint({ image: 'h2oelectric' });
+            return;
+        }
+
+        // CaCO3  →  caco3heat.png
+        if (has('caco3') || has('calciumCarbonate')) {
+            this.showHint({ image: 'caco3heat' });
+            return;
+        }
+
+        // NaCl (compound)  →  naclelectric.png
+        if (has('sodiumChloride') || has('nacl')) {
+            this.showHint({ image: 'naclelectric' });
+            return;
+        }
+
+        // HCl (compound)  →  hclnaoh.png
+        if (has('hydrochloricAcid')) {
+            this.showHint({ image: 'hclnaoh' });
+            return;
+        }
+
+        // AgNO3 (compound)  →  agno3nacl.png
+        if (has('silverNitrate') || has('agno3')) {
+            this.showHint({ image: 'agno3nacl' });
+            return;
+        }
+
+        // NaOH (compound)  →  hclnaoh.png
+        if (has('sodiumHydroxide')) {
+            this.showHint({ image: 'hclnaoh' });
+            return;
+        }
+
+        // CuSO4 (compound)  →  fecuso4.png
+        if (has('copperSulfate')) {
+            this.showHint({ image: 'fecuso4' });
+            return;
+        }
+
+        // CH4 (methane)  →  ch4o2.png
+        if (has('methane')) {
+            this.showHint({ image: 'hint_ch4o2' });
+            return;
+        }
+
+        // O2 gas  →  mgo2flame.png
+        if (has('o2')) {
+            this.showHint({ image: 'mgo2flame' });
+            return;
+        }
+
+        // Cl2 gas  →  mgcl2.png
+        if (has('cl2')) {
+            this.showHint({ image: 'mgcl2' });
+            return;
+        }
+
+        // No match — do not show a hint
+    }
+
     checkForCompound(elementsInZone) {
         const elementCounts = {};
         elementsInZone.forEach(element => {
-            elementCounts[element] = (elementCounts[element] || 0) + 1;
+            if (element === 'o2') {
+                elementCounts['oxygen'] = (elementCounts['oxygen'] || 0) + 2;
+            } else if (element === 'h2') {
+                elementCounts['hydrogen'] = (elementCounts['hydrogen'] || 0) + 2;
+            } else if (element === 'cl2') {
+                elementCounts['chlorine'] = (elementCounts['chlorine'] || 0) + 2;
+            } else {
+                elementCounts[element] = (elementCounts[element] || 0) + 1;
+            }
         });
 
         return compounds.find(compound => {
@@ -678,84 +1265,6 @@ export class Start extends Phaser.Scene {
 
     update() {
 
-    }
-
-    createCheatSheet() {
-        // SYNTHESIS GUIDE (Adapted for Stage 1)
-        this.cheatSheet = this.add.container(928, 522).setVisible(false).setDepth(5000);
-
-        // 1. Background (Dark, Glass-like)
-        const bg = this.add.rectangle(0, 0, 1200, 850, 0x121212, 0.98)
-            .setStrokeStyle(3, 0x2ecc71);
-
-        // 2. Header Section
-        const title = this.add.text(0, -350, '🧪 SYNTHESIS GUIDE', {
-            fontSize: '42px',
-            fill: '#2ecc71',
-            fontFamily: 'Verdana, sans-serif',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        const subTitle = this.add.text(0, -300, 'Combine these elements to create compounds:', {
-            fontSize: '20px',
-            fill: '#aaaaaa',
-            fontFamily: 'Verdana, sans-serif'
-        }).setOrigin(0.5);
-
-        const closeText = this.add.text(0, 380, '(Click anywhere to close)', {
-            fontSize: '18px', fill: '#666666', fontFamily: 'Verdana'
-        }).setOrigin(0.5);
-
-        // 3. Structured Data List - STAGE 1 RECIPES
-        const recipeList = [
-            { name: "WATER (H₂O)", ingredients: "Hydrogen + Hydrogen + Oxygen" },
-            { name: "SALT (NaCl)", ingredients: "Sodium + Chlorine" },
-            { name: "METHANE (CH₄)", ingredients: "Carbon + 4 Hydrogen" },
-            { name: "CARBON DIOXIDE (CO₂)", ingredients: "Carbon + 2 Oxygen" },
-            { name: "CALCIUM CARBONATE", ingredients: "Calcium + Carbon + 3 Oxygen" },
-            { name: "SILVER NITRATE", ingredients: "Silver + Nitrogen + 3 Oxygen" }
-        ];
-
-        // 4. Render List items
-        const startY = -220;
-        const rowHeight = 90;
-        const textGroup = [];
-
-        recipeList.forEach((item, index) => {
-            const yPos = startY + (index * rowHeight);
-
-            // A. Icon / Bullet
-            const bullet = this.add.circle(-400, yPos, 6, 0x2ecc71);
-
-            // B. Product Name (Left Aligned, Prominent)
-            const nameText = this.add.text(-380, yPos - 15, item.name, {
-                fontSize: '26px',
-                fill: '#ffffff',
-                fontFamily: 'Verdana, sans-serif',
-                fontStyle: 'bold'
-            }).setOrigin(0, 0.5);
-
-            // C. Ingredients (Left Aligned, Subtle)
-            const ingText = this.add.text(-380, yPos + 18, item.ingredients, {
-                fontSize: '20px',
-                fill: '#bbbbbb',
-                fontFamily: 'Verdana, sans-serif'
-            }).setOrigin(0, 0.5);
-
-            // D. Separator Line (Subtle)
-            const line = this.add.rectangle(0, yPos + 45, 900, 1, 0x333333).setOrigin(0.5);
-
-            textGroup.push(bullet, nameText, ingText, line);
-        });
-
-        this.cheatSheet.add([bg, title, subTitle, closeText, ...textGroup]);
-
-        // Close Interaction
-        bg.setInteractive({ cursor: 'pointer' }).on('pointerdown', () => this.toggleCheatSheet());
-    }
-
-    toggleCheatSheet() {
-        this.cheatSheet.setVisible(!this.cheatSheet.visible);
     }
 
     transitionToStage2() {

@@ -64,9 +64,9 @@ const sodiumNitrate = new Compound("Sodium Nitrate", "NaNO3", "liquid", "salt so
 const nitricAcid = new Compound("Nitric Acid", "HNO3", "liquid", "acid", "", "", 0.08, new Map([[hydrogen, 1], [nitrogen, 1], [oxygen, 3]]), "assets/compound/hydrochloricAcid.png", "hno3", "assets/speech/hint/hydrochloricAcid.png");
 
 // Molecular gases (products of decomposition)
-const hydrogenGas = new Compound("Hydrogen Gas", "H2", "gas", "gas", "", "", 0.05, new Map([[hydrogen, 2]]), "assets/elements/hydrogen.png", "h2", "assets/elements/hydrogen.png");
-const oxygenGas = new Compound("Oxygen Gas", "O2", "gas", "gas", "", "", 0.08, new Map([[oxygen, 2]]), "assets/elements/oxygen.png", "o2", "assets/elements/oxygen.png");
-const chlorineGas = new Compound("Chlorine Gas", "Cl2", "gas", "gas", "", "", 0.07, new Map([[chlorine, 2]]), "assets/elements/chlorine.png", "cl2", "assets/elements/chlorine.png");
+const hydrogenGas = new Compound("Hydrogen Gas", "H2", "gas", "gas", "", "", 0.10, new Map([[hydrogen, 2]]), "assets/elements/hydrogen.png", "h2", "assets/elements/hydrogen.png");
+const oxygenGas = new Compound("Oxygen Gas", "O2", "gas", "gas", "", "", 0.10, new Map([[oxygen, 2]]), "assets/elements/oxygen.png", "o2", "assets/elements/oxygen.png");
+const chlorineGas = new Compound("Chlorine Gas", "Cl2", "gas", "gas", "", "", 0.10, new Map([[chlorine, 2]]), "assets/elements/chlorine.png", "cl2", "assets/elements/chlorine.png");
 
 
 

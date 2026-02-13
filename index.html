@@ -528,10 +528,11 @@
         style="pointer-events: none; z-index: 5; padding-bottom: 5vh; gap: 20px;">
 
         <!-- Play Button -->
-        <a href="game.html" class="d-flex ai-center"
+        <a href="game.html" id="play-btn" class="d-flex ai-center"
             style="text-decoration: none; pointer-events: auto; transition: transform 0.3s; filter: drop-shadow(0 0 20px rgba(78, 162, 129, 0.8));"
             onmouseover="this.style.transform='scale(1.15)'; this.style.filter='drop-shadow(0 0 30px rgba(78, 162, 129, 1))'"
-            onmouseout="this.style.transform='scale(1)'; this.style.filter='drop-shadow(0 0 20px rgba(78, 162, 129, 0.8))'">
+            onmouseout="this.style.transform='scale(1)'; this.style.filter='drop-shadow(0 0 20px rgba(78, 162, 129, 0.8))'"
+            onclick="event.preventDefault(); document.body.style.transition='opacity 0.5s ease'; document.body.style.opacity='0'; setTimeout(function(){ window.location.href='game.html'; }, 500);">
             <!-- P element (Phosphorus) -->
             <span class="d-flex | pos-relative | ar-1 | bg-1"
                 style="padding: 24px; outline: 3px solid #4ea281; color: #4ea281; box-shadow: 0 0 15px rgba(78, 162, 129, 0.6);">
@@ -585,6 +586,7 @@
         </a>
     </div>
 
+
     <div style="padding-top: 100vh; padding-bottom: 30vh">
         <div id="table1_detector"></div>
     </div>
@@ -595,7 +597,58 @@
         <div id="final_text_detector"></div>
     </div>
 
+    <!-- Home Page Exit Button - Simple Text Style -->
+    <a href="#" id="exit-btn-home"
+        style="text-decoration: none; position: fixed; bottom: 40px; right: 40px; pointer-events: auto; padding: 8px 24px; border: 1px solid #4ea281; border-radius: 4px; color: #4ea281; font-family: SFPro-Bold, Verdana; font-size: 14px; letter-spacing: 1px; transition: all 0.3s; text-transform: uppercase; background: rgba(0,0,0,0.4); z-index: 1000;"
+        onmouseover="this.style.background='#4ea281'; this.style.color='#000000'; this.style.boxShadow='0 0 10px rgba(78, 162, 129, 0.4)'"
+        onmouseout="this.style.background='rgba(0,0,0,0.4)'; this.style.color='#4ea281'; this.style.boxShadow='none'"
+        onclick="document.getElementById('thank-you-overlay').style.display = 'flex'; return false;">
+        ✕ Exit
+    </a>
+
+    <!-- Thank You Overlay -->
+    <div id="thank-you-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 25, 5, 0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease;">
+        <h1
+            style="font-family: 'Verdana', sans-serif; font-size: 50px; color: #4ea281; margin-bottom: 20px; text-shadow: 0 0 20px rgba(78, 162, 129, 0.6); text-align: center;">
+            ChemSim</h1>
+        <h2
+            style="font-family: 'Verdana', sans-serif; font-size: 30px; color: #ecf0f1; margin-bottom: 10px; font-weight: normal;">
+            Thank You for Playing</h2>
+        <p style="font-family: 'Verdana', sans-serif; font-size: 16px; color: #95a5a6; margin-bottom: 40px;">You can now
+            close this tab.</p>
+
+        <button onclick="location.href='index.html'"
+            style="padding: 12px 30px; background: transparent; border: 2px solid #4ea281; color: #4ea281; font-family: 'Verdana', sans-serif; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.3s;"
+            onmouseover="this.style.backgroundColor='#4ea281'; this.style.color='#000000'; this.style.boxShadow='0 0 15px rgba(78, 162, 129, 0.5)'"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#4ea281'; this.style.boxShadow='none'">
+            Play Again
+        </button>
+    </div>
+
     <script>
+        // Check for 'showThanks' query param
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('showThanks') === 'true') {
+            const overlay = document.getElementById('thank-you-overlay');
+            overlay.style.display = 'flex';
+            // Small timeout to allow display:flex to apply before changing opacity for transition
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // Logic for button click animation if needed
+            const exitBtn = document.getElementById('exit-btn-home');
+            if (exitBtn) {
+                exitBtn.addEventListener('click', function () {
+                    const overlay = document.getElementById('thank-you-overlay');
+                    overlay.style.display = 'flex';
+                    setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+                });
+            }
+        }
+
         // Scroll Btween implementation (simplified)
         const scrollBtween = {
             defaults: { tweenerIntervalinMs: 300, enabled: true },

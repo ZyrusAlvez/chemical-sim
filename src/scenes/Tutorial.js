@@ -54,6 +54,9 @@ export class Tutorial extends Phaser.Scene {
     }
 
     create() {
+        // Notify that the game is ready (Hides Skeleton if this is the first scene)
+        window.dispatchEvent(new Event('game-ready'));
+
         // =================================================================
         // PREMIUM VISUALS: Cinematic Dark Theme
         // =================================================================
@@ -286,7 +289,11 @@ export class Tutorial extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             });
 
-            this.startPlayBtn.on('pointerdown', () => this.scene.start('Start'));
+            this.startPlayBtn.on('pointerdown', () => {
+                // Show Skeleton Loader (only if needed/slow)
+                if (window.showSkeleton) window.showSkeleton();
+                this.scene.start('Start');
+            });
         }
     }
 

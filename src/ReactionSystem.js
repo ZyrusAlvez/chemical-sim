@@ -57,22 +57,40 @@ export class ReactionSystem {
 
             if (aMatches && !bMatches) return -1;
             if (!aMatches && bMatches) return 1;
-
-            // If neither matches perfectly, prefer the one that requires *Active* energy over Null?
-            // No, prefers Null over Wrong Energy.
-            // But if one is Null (Synthesis) and one is Specific (Combustion), and Active matches Specific.
-            // Then aMatches=true/false handles it.
-
-            // If activeEnergy is NULL:
-            // Combustion (req Heat) -> aMatches=false.
-            // Synthesis (req Null) -> reqA=null. active=null. aMatches=true.
-            // So Synthesis wins.
-
             return 0;
         });
 
         console.log('Selected reaction:', matchingReactions[0].equation);
         return matchingReactions[0];
+    }
+
+    // Atomic Interceptor: Check if the user is trying to use atoms where molecules are required
+    checkAtomicInterception(reactantKeys) {
+        const inputSymbols = this.getSymbolsFromKeys(reactantKeys);
+        const counts = {};
+        inputSymbols.forEach(s => counts[s] = (counts[s] || 0) + 1);
+
+        // Check for Oxygen Atoms -> O2 requirement
+        if (counts['O'] >= 2 && !counts['O2']) {
+            // User has 2+ Oxygen atoms but no Oxygen Gas.
+            // They might be trying Mg + O + O instead of Mg + O2.
+            return {
+                type: 'hint',
+                hintKey: 'mgo2flame', // Or generic O2 hint if available
+                message: 'Form Oxygen Gas (O2) first! Combine 2 Oxygen atoms.'
+            };
+        }
+
+        // Check for Chlorine Atoms -> Cl2 requirement
+        if (counts['Cl'] >= 2 && !counts['Cl2']) {
+            return {
+                type: 'hint',
+                hintKey: 'mgcl2', // Or generic Cl2 hint
+                message: 'Form Chlorine Gas (Cl2) first! Combine 2 Chlorine atoms.'
+            };
+        }
+
+        return null;
     }
 
     // Convert texture keys to chemical symbols
@@ -90,6 +108,8 @@ export class ReactionSystem {
             // Check compounds
             const compound = compounds.find(c => c.textureKey === key);
             if (compound) {
+                // STRICT MOLECULAR LOGIC:
+                // Do NOT split gases (O2, Cl2) into atoms. They are distinct reactants.
                 symbols.push(this.normalizeSymbol(compound.symbol));
             }
         }
@@ -132,6 +152,8 @@ export class ReactionSystem {
         };
 
         const requiredEnergy = energyMap[reaction.energy_source];
+
+        // STRICT ENERGY CHECK: Must be exact match
         return activeEnergy === requiredEnergy;
     }
 
