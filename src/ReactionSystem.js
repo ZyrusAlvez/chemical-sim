@@ -24,7 +24,7 @@ export class ReactionSystem {
     findReaction(reactantKeys, activeEnergy) {
         // Normalize reactant keys to symbols
         const inputSymbols = this.getSymbolsFromKeys(reactantKeys);
-        console.log('Looking for reaction with inputs:', inputSymbols, 'Energy:', activeEnergy);
+
 
         const matchingReactions = [];
 
@@ -39,7 +39,7 @@ export class ReactionSystem {
         }
 
         if (matchingReactions.length === 0) {
-            console.log('No reaction found for:', inputSymbols);
+
             return null;
         }
 
@@ -60,7 +60,7 @@ export class ReactionSystem {
             return 0;
         });
 
-        console.log('Selected reaction:', matchingReactions[0].equation);
+
         return matchingReactions[0];
     }
 

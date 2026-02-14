@@ -11,7 +11,8 @@ window.addEventListener('game-ready', () => {
 
 // Initialize Global Game Progress
 window.gameProgress = window.gameProgress || {
-    unlockedRecipes: [], // Array of strings (compound names)
+    unlockedRecipes: [],
+    discoveredRecipes: [],
     milestones: {
         bronze: false,
         silver: false,

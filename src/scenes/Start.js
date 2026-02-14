@@ -65,7 +65,7 @@ export class Start extends Phaser.Scene {
     }
 
     create() {
-        console.log("✅ START SCENE - NEW VERSION LOADED ✅");
+
 
         // Notify that the game is ready (Hides Skeleton)
         window.dispatchEvent(new Event('game-ready'));
@@ -316,7 +316,7 @@ export class Start extends Phaser.Scene {
         });
 
         clearInvBtn.on('pointerdown', () => {
-            compoundInventory.clear();
+            compoundInventory.clearShelf();
 
             // Remove visual sprites
             this.createdCompounds.forEach(comp => {
@@ -416,10 +416,7 @@ export class Start extends Phaser.Scene {
             helpBtn.setScale(1);
             helpBtn.setShadow(2, 2, '#000000', 4, true, true);
         });
-        helpBtn.on('pointerdown', () => this.toggleCheatSheet());
-
-        // Create the Cheat Sheet Container
-        this.createCheatSheet();
+        helpBtn.on('pointerdown', () => this.toggleRecipeBook());
     }
 
     loadExistingCompounds() {
@@ -496,7 +493,6 @@ export class Start extends Phaser.Scene {
 
     addCompoundToInventory(compound) {
         if (!compoundInventory.addCompound(compound.name)) {
-            // If false, it was a duplicate (and not a gas), so don't show congrats or badges
             if (!['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas'].includes(compound.name)) {
                 this.showAlreadyFormulatedMessage();
             }
@@ -506,41 +502,32 @@ export class Start extends Phaser.Scene {
         this.showCongratsScreen(compound);
         this.displayCompoundInInventory(compound);
 
-        // CHECK MILESTONES (Global State)
-        const uniqueCount = compoundInventory.getUniqueNonGasCount();
+        // CHECK MILESTONES (5-10-15 grouped unlock system)
+        const discoveryCount = compoundInventory.getDiscoveryCount();
+        const TOTAL_RECIPES = 20; // Total unique non-gas compounds discoverable
 
-        if (uniqueCount >= 13 && !compoundInventory.isMasterUnlocked) { // Reduced from 19 to 13 relative to recipe list size or keep 100% logic
-            // logic implies 100% completion. Let's assume 100% is when all recipes are done. 
-            // For now, let's stick to the prompt's "100% Completion" which might be dynamic.
-            // But prompt says: "At 100% Completion: Show Master Gold Badge".
-            // Let's use a safe high number or check total available. 
-            // The prompt has specific triggers: 5 -> Bronze, 10 -> Silver.
-            // Let's stick to the prompt strict rule: "At 5... At 10...".
-        }
-
-        // Check milestones based on strict thresholds
-        if (uniqueCount === 5 && !compoundInventory.hasShownBronze) {
+        if (discoveryCount >= 5 && !compoundInventory.hasShownBronze) {
             compoundInventory.hasShownBronze = true;
             this.time.delayedCall(2000, () => {
                 this.showAchievementBadge('bronze');
-                // Trigger Mission Message
-                this.showMissionMessage("MISSION: Unlock 5 more recipes to reveal the Decomposition Guide!");
+                this.showMissionMessage('BRONZE ALCHEMIST! Decomposition unlocked! Discover 5 more to learn Displacement!');
             });
         }
-        else if (uniqueCount === 10 && !compoundInventory.hasShownSilver) {
+        if (discoveryCount >= 10 && !compoundInventory.hasShownSilver) {
             compoundInventory.hasShownSilver = true;
             this.time.delayedCall(2000, () => {
                 this.showAchievementBadge('silver');
-                // Reveal is automatic in recipe book next time it opens
+                this.showMissionMessage('SILVER CHEMIST! Displacement unlocked! Discover 5 more to reach the final tier!');
             });
         }
 
-        // Check for "Master" (Assuming 100% is ~12-15 compounds based on provided lists)
-        // Hardcoded 12 for now as "100%" or check if all possible compounds are found.
-        // Synthesis (9) + Decomp (3) = 12 total distinct products roughly.
-        if (uniqueCount >= 12 && !compoundInventory.isMasterUnlocked) {
+        // Gold Master Alchemist — triggers when ALL unique recipes found
+        if (discoveryCount >= TOTAL_RECIPES && !compoundInventory.isMasterUnlocked) {
             compoundInventory.isMasterUnlocked = true;
-            this.time.delayedCall(2000, () => this.showAchievementBadge('master'));
+            this.time.delayedCall(2500, () => {
+                this.showAchievementBadge('master');
+                this.showMissionMessage('GOLD MASTER ALCHEMIST! Every recipe discovered!');
+            });
         }
     }
 
@@ -551,7 +538,7 @@ export class Start extends Phaser.Scene {
             background: rgba(0, 0, 0, 0.8); border: 2px solid #3498db;
             color: #ecf0f1; padding: 20px 40px; font-family: 'Verdana', sans-serif;
             font-size: 20px; font-weight: bold; border-radius: 10px;
-            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); z-index: 2000;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); z-index: 1050;
             text-align: center;
         `;
         missionBox.innerText = msg;
@@ -568,7 +555,7 @@ export class Start extends Phaser.Scene {
         const config = {
             bronze: { css: 'border: 3px solid #cd7f32; color: #cd7f32; box-shadow: 0 0 15px #cd7f32;', symbol: '5', label: 'BRONZE ALCHEMIST' },
             silver: { css: 'border: 3px solid #c0c0c0; color: #c0c0c0; box-shadow: 0 0 15px #c0c0c0;', symbol: '10', label: 'SILVER CHEMIST' },
-            master: { css: 'border: 3px solid #ffd700; color: #ffd700; box-shadow: 0 0 25px #ffd700;', symbol: 'M', label: 'MASTER ALCHEMIST' }
+            master: { css: 'border: 3px solid #ffd700; color: #ffd700; box-shadow: 0 0 25px #ffd700;', symbol: '\u2605', label: 'GOLD MASTER ALCHEMIST' }
         }[tier];
 
         const wrapper = document.createElement('div');
@@ -577,7 +564,7 @@ export class Start extends Phaser.Scene {
             position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
             width: 80px; height: 80px; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; background: rgba(0,0,0,0.9);
-            z-index: 5000; animation: badgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1050; animation: badgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             ${config.css}
         `;
 
@@ -587,7 +574,6 @@ export class Start extends Phaser.Scene {
         `;
         document.body.appendChild(wrapper);
 
-        // Add keyframes if not exists
         if (!document.getElementById('badge-style')) {
             const style = document.createElement('style');
             style.id = 'badge-style';
@@ -633,120 +619,104 @@ export class Start extends Phaser.Scene {
         setTimeout(() => sparkleOverlay.remove(), 2000);
     }
 
-    createCheatSheet() {
-        // Placeholder to satisfy engine if called, but we use toggleRecipeBook logic
-    }
-
-    toggleCheatSheet() {
-        // Redirect to new DOM method
-        this.toggleRecipeBook();
-    }
-
     toggleRecipeBook() {
-        // Toggle existence of DOM element
         const existing = document.getElementById('recipe-book-overlay');
-        if (existing) {
-            existing.remove();
-            return;
-        }
+        if (existing) { existing.remove(); return; }
 
-        // Data Source
-        const uniqueCount = compoundInventory.getUniqueNonGasCount();
-        const showDecomp = uniqueCount >= 10;
+        const discoveryCount = compoundInventory.getDiscoveryCount();
 
-        const synthesisRecipes = [
-            { name: "WATER (H₂O)", formula: "H + H + O" },
-            { name: "SALT (NaCl)", formula: "Na + Cl" },
-            { name: "METHANE (CH₄)", formula: "C + 4H" },
-            { name: "CARBON DIOXIDE (CO₂)", formula: "C + 2O" },
-            { name: "CALCIUM CARBONATE", formula: "Ca + C + 3O" },
-            { name: "SILVER NITRATE", formula: "Ag + N + 3O" },
-            { name: "SODIUM HYDROXIDE", formula: "Na + O + H" },
-            { name: "HYDROCHLORIC ACID", formula: "H + Cl" },
-            { name: "COPPER SULFATE", formula: "Cu + S + 4O" }
+        // 6 recipe sections — grouped unlock at 5, 10, 15
+        const sections = [
+            {
+                title: 'Synthesis', icon: '\u2697\uFE0F', color: '#2980b9', tier: 0, recipes: [
+                    { name: 'Water (H\u2082O)', formula: 'H + H + O' },
+                    { name: 'Hydrochloric Acid (HCl)', formula: 'H + Cl' },
+                    { name: 'Sodium Hydroxide (NaOH)', formula: 'Na + O + H' },
+                    { name: 'Sodium Chloride (NaCl)', formula: 'Na + Cl' },
+                    { name: 'Methane (CH\u2084)', formula: 'C + 4H' },
+                    { name: 'Carbon Dioxide (CO\u2082)', formula: 'C + O\u2082  or  C + 2O' },
+                    { name: 'Calcium Carbonate (CaCO\u2083)', formula: 'Ca + C + 3O' },
+                    { name: 'Copper Sulfate (CuSO\u2084)', formula: 'Cu + S + 4O' },
+                    { name: 'Silver Nitrate (AgNO\u2083)', formula: 'Ag + N + 3O' },
+                    { name: 'Iron Oxide (Fe\u2082O\u2083)', formula: 'Fe + O\u2082' },
+                    { name: 'Magnesium Chloride (MgCl\u2082)', formula: 'Mg + Cl\u2082' },
+                    { name: 'Calcium Oxide (CaO)', formula: 'Ca + O\u2082' },
+                ]
+            },
+            {
+                title: 'Decomposition', icon: '\uD83D\uDCA5', color: '#c0392b', tier: 5, recipes: [
+                    { name: 'Water \u2192 H\u2082 + O\u2082', formula: 'H\u2082O + Electricity' },
+                    { name: 'Salt \u2192 Na + Cl\u2082', formula: 'NaCl + Electricity' },
+                    { name: 'CaCO\u2083 \u2192 CaO + CO\u2082', formula: 'CaCO\u2083 + High Heat' },
+                ]
+            },
+            {
+                title: 'Single Displacement', icon: '\u2194\uFE0F', color: '#8e44ad', tier: 10, recipes: [
+                    { name: 'Zn + HCl \u2192 ZnCl\u2082 + H\u2082', formula: 'Zinc + Hydrochloric Acid' },
+                    { name: 'Mg + HCl \u2192 MgCl\u2082 + H\u2082', formula: 'Magnesium + Hydrochloric Acid' },
+                    { name: 'Fe + CuSO\u2084 \u2192 FeSO\u2084 + Cu', formula: 'Iron + Copper Sulfate' },
+                    { name: 'Zn + CuSO\u2084 \u2192 ZnSO\u2084 + Cu', formula: 'Zinc + Copper Sulfate' },
+                ]
+            },
+            {
+                title: 'Double Displacement', icon: '\uD83D\uDD00', color: '#d35400', tier: 10, recipes: [
+                    { name: 'AgNO\u2083 + NaCl \u2192 AgCl + NaNO\u2083', formula: 'Silver Nitrate + Sodium Chloride' },
+                    { name: 'AgNO\u2083 + HCl \u2192 AgCl + HNO\u2083', formula: 'Silver Nitrate + Hydrochloric Acid' },
+                ]
+            },
+            {
+                title: 'Neutralization', icon: '\u2696\uFE0F', color: '#16a085', tier: 15, recipes: [
+                    { name: 'HCl + NaOH \u2192 NaCl + H\u2082O', formula: 'Hydrochloric Acid + Sodium Hydroxide' },
+                ]
+            },
+            {
+                title: 'Combustion', icon: '\uD83D\uDD25', color: '#e67e22', tier: 15, recipes: [
+                    { name: 'Mg + O\u2082 \u2192 MgO', formula: 'Magnesium + Oxygen Gas + Heat' },
+                    { name: 'CH\u2084 + O\u2082 \u2192 CO\u2082 + H\u2082O', formula: 'Methane + Oxygen Gas' },
+                ]
+            },
         ];
 
-        const decompRecipes = [
-            { name: "WATER → H₂ + O₂", formula: "Water + Electricity (High)" },
-            { name: "SALT → Na + Cl₂", formula: "NaCl + Electricity (Molten)" },
-            { name: "CaCO₃ → CaO + CO₂", formula: "CaCO₃ + Heat (High)" }
-        ];
-
-        // Container
+        // OVERLAY
         const overlay = document.createElement('div');
         overlay.id = 'recipe-book-overlay';
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
-        `;
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1020;display:flex;justify-content:center;align-items:center;';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 
-        // Click outside to close
-        overlay.onclick = (e) => {
-            if (e.target === overlay) overlay.remove();
-        };
-
-        // Book Content
+        // BOOK (Lab Manual Theme — Blue/White)
         const book = document.createElement('div');
-        book.style.cssText = `
-            width: 500px; max-height: 450px; background: #1a1a1a;
-            border: 2px solid #2ecc71; border-radius: 8px;
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
-            display: flex; flex-direction: column; overflow: hidden;
-            font-family: 'Verdana', sans-serif;
-        `;
+        book.style.cssText = 'width:540px;max-height:450px;background:#f5f7fa;border:2px solid #2980b9;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;font-family:Verdana,sans-serif;box-shadow:0 8px 32px rgba(41,128,185,0.3);';
 
-        // Header
+        // HEADER
         const header = document.createElement('div');
-        header.style.cssText = `
-            background: #2ecc71; color: #000; padding: 15px;
-            font-weight: bold; font-size: 20px; text-align: center;
-            display: flex; justify-content: space-between; align-items: center;
-        `;
-        header.innerHTML = `<span>🧪 RECIPE BOOK</span><span style="font-size: 14px; opacity: 0.8">Unlocked: ${uniqueCount}</span>`;
+        header.style.cssText = 'background:#2980b9;color:#fff;padding:14px 20px;font-weight:bold;font-size:18px;display:flex;justify-content:space-between;align-items:center;';
+        header.innerHTML = '<span>\uD83D\uDCD6 LAB MANUAL</span><span style="font-size:13px;opacity:0.85">Discovered: ' + discoveryCount + '</span>';
 
-        // Scrollable List
+        // SCROLLABLE LIST
         const list = document.createElement('div');
-        list.style.cssText = `
-            flex: 1; overflow-y: auto; padding: 20px;
-            color: #ecf0f1;
-        `;
+        list.style.cssText = 'flex:1;overflow-y:auto;padding:16px 20px;';
 
-        // Helper to render items
-        const renderItem = (item, color) => `
-            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #333;">
-                <div style="color: ${color}; font-weight: bold; font-size: 16px; margin-bottom: 5px;">${item.name}</div>
-                <div style="color: #bdc3c7; font-size: 14px;">${item.formula}</div>
-            </div>
-        `;
+        const renderRecipe = (r) => '<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #dce1e8;"><div style="color:#2c3e50;font-weight:bold;font-size:14px;margin-bottom:3px;">' + r.name + '</div><div style="color:#7f8c8d;font-size:13px;">' + r.formula + '</div></div>';
 
-        // 1. Synthesis Section
-        list.innerHTML += `<div style="color: #2ecc71; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #2ecc71; padding-bottom: 5px;">⚗️ SYNTHESIS</div>`;
-        synthesisRecipes.forEach(r => list.innerHTML += renderItem(r, '#ffffff'));
+        const renderLocked = (needed, nextSection) => '<div style="background:rgba(41,128,185,0.08);border:1px dashed #2980b9;padding:14px;text-align:center;color:#2980b9;border-radius:6px;margin-bottom:10px;"><div>\uD83D\uDD12 LOCKED</div><div style="font-size:11px;margin-top:4px;">Discover ' + needed + ' compounds to unlock ' + nextSection + '</div></div>';
 
-        // 2. Decomposition Section (Gated)
-        list.innerHTML += `<div style="color: #e74c3c; font-weight: bold; margin: 25px 0 15px 0; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">💥 DECOMPOSITION</div>`;
+        sections.forEach(sec => {
+            list.innerHTML += '<h3 style="color:' + sec.color + ';font-weight:bold;margin:18px 0 10px 0;border-bottom:2px solid ' + sec.color + ';padding-bottom:4px;font-size:15px;">' + sec.icon + ' ' + sec.title + '</h3>';
+            if (discoveryCount >= sec.tier) {
+                sec.recipes.forEach(r => { list.innerHTML += renderRecipe(r); });
+            } else {
+                list.innerHTML += renderLocked(sec.tier, sec.title);
+            }
+        });
 
-        if (showDecomp) {
-            decompRecipes.forEach(r => list.innerHTML += renderItem(r, '#ffffff'));
-        } else {
-            list.innerHTML += `
-                <div style="background: rgba(231, 76, 60, 0.1); border: 1px dashed #e74c3c; padding: 15px; text-align: center; color: #e74c3c; border-radius: 5px;">
-                    <div>🔒 LOCKED</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Collect 10 Unique Compounds to reveal</div>
-                </div>
-            `;
-        }
+        // FOOTER
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:8px;background:#eaecf0;text-align:center;color:#95a5a6;font-size:11px;font-style:italic;';
+        footer.innerText = '(Click outside to close)';
 
         book.appendChild(header);
         book.appendChild(list);
-
-        // Footer hint
-        const footer = document.createElement('div');
-        footer.style.cssText = "padding: 10px; background: #222; text-align: center; color: #777; font-size: 12px; font-style: italic;";
-        footer.innerText = "(Click outside to close)";
         book.appendChild(footer);
-
         overlay.appendChild(book);
         document.body.appendChild(overlay);
     }
@@ -937,7 +907,7 @@ export class Start extends Phaser.Scene {
         // Verify texture exists in Phaser cache before rendering
         const textureExists = this.textures.exists(data.image);
         if (!textureExists && data.image) {
-            console.log('HINT WARNING: Texture key "' + data.image + '" NOT in Phaser cache.');
+
             return;
         }
 

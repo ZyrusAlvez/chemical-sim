@@ -1,46 +1,25 @@
-// Global compound inventory that persists between stages
+// Global compound inventory — volatile session memory (resets on refresh)
 class CompoundInventory {
     constructor() {
         this.MAX_SLOTS = 25;
-        // Gases are allowed to have duplicates
         this.duplicateAllowed = ['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas'];
-
-        // Load from localStorage if available, otherwise sync with global/empty
-        this.load();
     }
 
-    // Load state from localStorage or initialize from global
-    load() {
-        const saved = localStorage.getItem('chemicalSimProgress');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                window.gameProgress = { ...window.gameProgress, ...parsed };
-            } catch (e) {
-                console.error('Failed to load save:', e);
-            }
-        }
-    }
-
-    // Save state to localStorage
-    save() {
-        localStorage.setItem('chemicalSimProgress', JSON.stringify(window.gameProgress));
-    }
-
+    // Add compound to SHELF (visual display)
     addCompound(compoundName) {
-        // Check capacity
         if (this.getCreatedCompounds().length >= this.MAX_SLOTS) {
-            alert('Shelf is full! Use the Clear Shelf button to make room for more experiments.');
             return false;
         }
-
-        // Block duplicates for non-gas compounds
         if (!this.duplicateAllowed.includes(compoundName) && this.hasCompound(compoundName)) {
             return false;
         }
-
         window.gameProgress.unlockedRecipes.push(compoundName);
-        this.save();
+
+        // Also track in permanent discovery list (session-only)
+        if (!window.gameProgress.discoveredRecipes.includes(compoundName)) {
+            window.gameProgress.discoveredRecipes.push(compoundName);
+        }
+
         return true;
     }
 
@@ -56,28 +35,36 @@ class CompoundInventory {
         return window.gameProgress.unlockedRecipes.length;
     }
 
+    // Count unique non-gas shelf items
     getUniqueNonGasCount() {
-        // Count unique compound names, excluding gas duplicates
         const unique = new Set(window.gameProgress.unlockedRecipes.filter(
             name => !this.duplicateAllowed.includes(name)
         ));
         return unique.size;
     }
 
-    clear() {
+    // Count unique non-gas DISCOVERIES (permanent within session, survives Clear Shelf)
+    getDiscoveryCount() {
+        const unique = new Set(window.gameProgress.discoveredRecipes.filter(
+            name => !this.duplicateAllowed.includes(name)
+        ));
+        return unique.size;
+    }
+
+    // Clear SHELF only — does NOT erase discovery progress
+    clearShelf() {
         window.gameProgress.unlockedRecipes = [];
-        this.save();
     }
 
     // Milestone Getters/Setters
-    get isMasterUnlocked() { return window.gameProgress.milestones.master; }
-    set isMasterUnlocked(val) { window.gameProgress.milestones.master = val; this.save(); }
-
     get hasShownBronze() { return window.gameProgress.milestones.bronze; }
-    set hasShownBronze(val) { window.gameProgress.milestones.bronze = val; this.save(); }
+    set hasShownBronze(val) { window.gameProgress.milestones.bronze = val; }
 
     get hasShownSilver() { return window.gameProgress.milestones.silver; }
-    set hasShownSilver(val) { window.gameProgress.milestones.silver = val; this.save(); }
+    set hasShownSilver(val) { window.gameProgress.milestones.silver = val; }
+
+    get isMasterUnlocked() { return window.gameProgress.milestones.master; }
+    set isMasterUnlocked(val) { window.gameProgress.milestones.master = val; }
 }
 
 // Create global instance

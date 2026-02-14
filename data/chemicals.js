@@ -80,11 +80,6 @@ export const compounds = [
   sodiumChloride, copperSulfate, methane, calciumCarbonate,
   magnesiumOxide, magnesiumOxideCombust, ironOxide, magnesiumChloride, calciumOxide,
   carbonDioxide, zincChloride, ironSulfate, zincSulfate,
-  carbonDioxide, zincChloride, ironSulfate, zincSulfate,
   silverChloride, sodiumNitrate, nitricAcid,
   hydrogenGas, oxygenGas, chlorineGas
 ];
-
-// Test output
-console.log("Elements:", elements);
-console.log("Compounds:", compounds);
