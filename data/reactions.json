@@ -1,0 +1,469 @@
+[
+    {
+        "type": "synthesis",
+        "reactants": [
+            "H",
+            "H",
+            "O"
+        ],
+        "products": [
+            "H2O"
+        ],
+        "equation": "2H + O → H2O",
+        "energy_source": null,
+        "visual_effect": "Bubble Formation",
+        "animation_key": "bubble",
+        "product_effect": "bubbles"
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "H",
+            "Cl"
+        ],
+        "products": [
+            "HCl"
+        ],
+        "equation": "H + Cl → HCl",
+        "energy_source": null,
+        "visual_effect": "Gas Formation",
+        "animation_key": "bubble",
+        "product_effect": "fizz"
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "O",
+            "O"
+        ],
+        "products": [
+            "O2"
+        ],
+        "equation": "O + O → O2",
+        "energy_source": null,
+        "visual_effect": "Gas Formation",
+        "animation_key": "bubble",
+        "product_effect": "bubbles",
+        "hint": "Two Oxygen atoms combine to form Oxygen Gas."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Cl",
+            "Cl"
+        ],
+        "products": [
+            "Cl2"
+        ],
+        "equation": "Cl + Cl → Cl2",
+        "energy_source": null,
+        "visual_effect": "Gas Formation",
+        "animation_key": "bubble",
+        "product_effect": "fizz",
+        "hint": "Two Chlorine atoms combine to form Chlorine Gas."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "H",
+            "H"
+        ],
+        "products": [
+            "H2"
+        ],
+        "equation": "H + H → H2",
+        "energy_source": null,
+        "visual_effect": "Gas Formation",
+        "animation_key": "bubble",
+        "product_effect": "bubbles",
+        "hint": "Two Hydrogen atoms combine to form Hydrogen Gas."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Na",
+            "O",
+            "H"
+        ],
+        "products": [
+            "NaOH"
+        ],
+        "equation": "Na + O + H → NaOH",
+        "energy_source": null,
+        "visual_effect": "Solution Formation",
+        "animation_key": "bubble",
+        "product_effect": "glow",
+        "hint": "Sodium, Oxygen, and Hydrogen form Sodium Hydroxide. Drag Na + O + H together."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Na",
+            "Cl"
+        ],
+        "products": [
+            "NaCl"
+        ],
+        "equation": "Na + Cl → NaCl",
+        "energy_source": null,
+        "visual_effect": "Salt Formation",
+        "animation_key": "bubble",
+        "product_effect": "crystals"
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Na",
+            "Cl2"
+        ],
+        "products": [
+            "NaCl"
+        ],
+        "equation": "Na + Cl2 → NaCl",
+        "energy_source": null,
+        "visual_effect": "Salt Formation",
+        "animation_key": "bubble",
+        "product_effect": "crystals"
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "C",
+            "H",
+            "H",
+            "H",
+            "H"
+        ],
+        "products": [
+            "CH4"
+        ],
+        "equation": "C + 4H → CH4",
+        "energy_source": null,
+        "visual_effect": "Gas Formation",
+        "animation_key": "bubble",
+        "product_effect": "bubbles",
+        "hint": "Carbon and 4 Hydrogen atoms form Methane. Drag C + 4 H."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Ca",
+            "C",
+            "O",
+            "O",
+            "O"
+        ],
+        "products": [
+            "CaCO3"
+        ],
+        "equation": "Ca + C + 3O → CaCO3",
+        "energy_source": null,
+        "visual_effect": "Solid Formation",
+        "animation_key": "bubble",
+        "product_effect": "smoke",
+        "hint": "Calcium carbonate forms from calcium, carbon, and oxygen. Drag Ca + C + 3 O atoms."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Cu",
+            "S",
+            "O",
+            "O",
+            "O",
+            "O"
+        ],
+        "products": [
+            "CuSO4"
+        ],
+        "equation": "Cu + S + 4O → CuSO4",
+        "energy_source": null,
+        "visual_effect": "Blue Solution",
+        "product_effect": "glow",
+        "animation_key": "bubble"
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Ag",
+            "N",
+            "O",
+            "O",
+            "O"
+        ],
+        "products": [
+            "AgNO3"
+        ],
+        "equation": "Ag + N + 3O → AgNO3",
+        "energy_source": null,
+        "visual_effect": "Solution Formation",
+        "product_effect": "crystals",
+        "animation_key": "bubble"
+    },
+    {
+        "type": "combustion",
+        "reactants": [
+            "Mg",
+            "O2"
+        ],
+        "products": [
+            "MgO_c"
+        ],
+        "equation": "Mg + O2 + Heat → MgO",
+        "energy_source": "initial_heat",
+        "visual_effect": "Bright Flame",
+        "product_effect": "bright_flame",
+        "animation_key": "brightFlame",
+        "hint": "Magnesium burns in Oxygen Gas. Use Mg + O2 + Heat."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Fe",
+            "O2"
+        ],
+        "products": [
+            "Fe2O3"
+        ],
+        "equation": "Fe + O2 → Fe2O3",
+        "energy_source": null,
+        "visual_effect": "Glow / Rust Color Change",
+        "product_effect": "glow",
+        "animation_key": "rustGlow",
+        "hint": "Iron reacts with Oxygen Gas to rust. Use Fe + O2."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Mg",
+            "Cl2"
+        ],
+        "products": [
+            "MgCl2"
+        ],
+        "equation": "Mg + Cl2 → MgCl2",
+        "energy_source": null,
+        "visual_effect": "White Solid Formation",
+        "product_effect": "crystals",
+        "animation_key": "solidFormation",
+        "hint": "Magnesium reacts with Chlorine Gas. Use Mg + Cl2."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "Ca",
+            "O2"
+        ],
+        "products": [
+            "CaO"
+        ],
+        "equation": "Ca + O2 → CaO",
+        "energy_source": null,
+        "visual_effect": "Bright Glow / Heat",
+        "product_effect": "glow",
+        "animation_key": "brightGlow",
+        "hint": "Calcium reacts with Oxygen Gas. Use Ca + O2."
+    },
+    {
+        "type": "synthesis",
+        "reactants": [
+            "C",
+            "O2"
+        ],
+        "products": [
+            "CO2"
+        ],
+        "equation": "C + O2 → CO2",
+        "energy_source": null,
+        "visual_effect": "Heat Release",
+        "product_effect": "smoke",
+        "animation_key": "heatRelease",
+        "hint": "Carbon burns in Oxygen Gas. Use C + O2."
+    },
+    {
+        "type": "decomposition",
+        "reactants": [
+            "H2O"
+        ],
+        "products": [
+            "H2",
+            "O2"
+        ],
+        "equation": "H2O → H2 + O2",
+        "energy_source": "Electricity High",
+        "visual_effect": "Constant Bubbles",
+        "product_effect": "bubbles",
+        "animation_key": "electricityHigh",
+        "hint": "Water is stable. Apply Electricity to split it.",
+        "hint_key": "h20electric"
+    },
+    {
+        "type": "decomposition",
+        "reactants": [
+            "CaCO3"
+        ],
+        "products": [
+            "CaO",
+            "CO2"
+        ],
+        "equation": "CaCO3 → CaO + CO2",
+        "energy_source": "High Heat",
+        "visual_effect": "Gas Release (Bubbles)",
+        "product_effect": "fizz",
+        "animation_key": "highHeat",
+        "hint": "Calcium Carbonate requires High Heat to decompose.",
+        "hint_key": "caco3heat"
+    },
+    {
+        "type": "decomposition",
+        "reactants": [
+            "NaCl"
+        ],
+        "products": [
+            "Na",
+            "Cl2"
+        ],
+        "equation": "NaCl → Na + Cl2",
+        "energy_source": "Electricity High (Molten)",
+        "visual_effect": "Metal Formation at Electrode",
+        "product_effect": "metal_glow",
+        "animation_key": "electricityHigh",
+        "hint": "Apply Electricity to molten salt to extract sodium."
+    },
+    {
+        "type": "single_displacement",
+        "reactants": [
+            "Zn",
+            "HCl"
+        ],
+        "products": [
+            "ZnCl2",
+            "H2"
+        ],
+        "equation": "Zn + HCl → ZnCl2 + H2",
+        "energy_source": null,
+        "visual_effect": "Vigorous Bubbling",
+        "product_effect": "bubbles",
+        "animation_key": "bubble",
+        "hint": "Zinc reacts with Hydrochloric Acid to release Hydrogen Gas."
+    },
+    {
+        "type": "single_displacement",
+        "reactants": [
+            "Mg",
+            "HCl"
+        ],
+        "products": [
+            "MgCl2",
+            "H2"
+        ],
+        "equation": "Mg + HCl → MgCl2 + H2",
+        "energy_source": null,
+        "visual_effect": "High Heat / Rapid Bubbles",
+        "product_effect": "rapid_bubbles",
+        "animation_key": "rapidBubble",
+        "hint": "Magnesium reacts vigorously with Hydrochloric Acid."
+    },
+    {
+        "type": "single_displacement",
+        "reactants": [
+            "Fe",
+            "CuSO4"
+        ],
+        "products": [
+            "FeSO4",
+            "Cu"
+        ],
+        "equation": "Fe + CuSO4 → FeSO4 + Cu",
+        "energy_source": null,
+        "visual_effect": "Iron turns Reddish/Brown",
+        "product_effect": "rust_glow",
+        "animation_key": "colorChange",
+        "hint": "Iron displaces Copper from Copper Sulfate solution."
+    },
+    {
+        "type": "single_displacement",
+        "reactants": [
+            "Zn",
+            "CuSO4"
+        ],
+        "products": [
+            "ZnSO4",
+            "Cu"
+        ],
+        "equation": "Zn + CuSO4 → ZnSO4 + Cu",
+        "energy_source": null,
+        "visual_effect": "Solution fades Blue → Clear",
+        "product_effect": "solution_fade",
+        "animation_key": "solutionFade",
+        "hint": "Zinc displaces Copper from Copper Sulfate solution."
+    },
+    {
+        "type": "double_displacement",
+        "reactants": [
+            "AgNO3",
+            "NaCl"
+        ],
+        "products": [
+            "AgCl",
+            "NaNO3"
+        ],
+        "equation": "AgNO3 + NaCl → AgCl(s) + NaNO3",
+        "energy_source": null,
+        "visual_effect": "Milk-white Precipitate",
+        "product_effect": "precipitate_milk",
+        "animation_key": "precipitate",
+        "hint": "Silver Nitrate and Sodium Chloride form a white precipitate."
+    },
+    {
+        "type": "double_displacement",
+        "reactants": [
+            "AgNO3",
+            "HCl"
+        ],
+        "products": [
+            "AgCl",
+            "HNO3"
+        ],
+        "equation": "AgNO3 + HCl → AgCl(s) + HNO3",
+        "energy_source": null,
+        "visual_effect": "White Cloudy Particles",
+        "product_effect": "cloudy_white",
+        "animation_key": "cloudyParticles",
+        "hint": "Silver Nitrate reacts with Hydrochloric Acid to form AgCl precipitate."
+    },
+    {
+        "type": "neutralization",
+        "reactants": [
+            "HCl",
+            "NaOH"
+        ],
+        "products": [
+            "NaCl",
+            "H2O"
+        ],
+        "equation": "HCl + NaOH → NaCl + H2O",
+        "energy_source": null,
+        "visual_effect": "Energy Bar (Max Heat)",
+        "product_effect": "glow",
+        "animation_key": "energyBar",
+        "hint": "Hydrochloric Acid and Sodium Hydroxide neutralization."
+    },
+    {
+        "type": "combustion",
+        "reactants": [
+            "CH4",
+            "O2"
+        ],
+        "products": [
+            "CO2",
+            "H2O"
+        ],
+        "equation": "CH4 + O2 → CO2 + H2O",
+        "energy_source": null,
+        "visual_effect": "Blue Flame Animation",
+        "product_effect": "blue_flame",
+        "animation_key": "blueFlame",
+        "hint": "Methane burns in excess Oxygen Gas. Use CH4 + O2."
+    }
+]
