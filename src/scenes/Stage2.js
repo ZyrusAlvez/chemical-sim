@@ -355,7 +355,7 @@ export class Stage2 extends Phaser.Scene {
         const overlay = document.createElement('div');
         overlay.id = 'recipe-book-overlay';
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1020;display:flex;justify-content:center;align-items:center;';
-        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        overlay.onclick = (e) => { if (e.target === overlay) this.uiManager.closeAllMenus(); };
 
         // BOOK (Lab Manual Theme — Blue/White)
         const book = document.createElement('div');
@@ -2015,7 +2015,7 @@ export class Stage2 extends Phaser.Scene {
         const overlay = document.createElement('div');
         overlay.id = 'journal-overlay';
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1020;display:flex;justify-content:center;align-items:center;';
-        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        overlay.onclick = (e) => { if (e.target === overlay) this.uiManager.closeAllMenus(); };
 
         // JOURNAL CONTAINER (Parchment Theme)
         const journal = document.createElement('div');
@@ -2077,7 +2077,7 @@ export class Stage2 extends Phaser.Scene {
         clearBtn.onclick = () => {
             window.sessionStorage.removeItem('chemSimHistory');
             this.history = [];
-            overlay.remove();
+            this.uiManager.closeAllMenus();
         };
 
         const hint = document.createElement('span');

@@ -332,6 +332,11 @@ export class Start extends Phaser.Scene {
 
         // ── STRICT UI NAVIGATION (DOM-based) ──
         this.uiManager = new UIManager(this);
+
+        // Load History (Shared with Stage 2)
+        const savedHistory = window.sessionStorage.getItem('chemSimHistory');
+        this.history = savedHistory ? JSON.parse(savedHistory) : [];
+
         this.uiManager.createNavbar({
             onExit: () => {
                 window.location.href = 'index.html?showThanks=true';
@@ -624,7 +629,7 @@ export class Start extends Phaser.Scene {
         const overlay = document.createElement('div');
         overlay.id = 'recipe-book-overlay';
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1020;display:flex;justify-content:center;align-items:center;';
-        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        overlay.onclick = (e) => { if (e.target === overlay) this.uiManager.closeAllMenus(); };
 
         // BOOK (Lab Manual Theme — Blue/White)
         const book = document.createElement('div');
@@ -1212,7 +1217,7 @@ export class Start extends Phaser.Scene {
         const overlay = document.createElement('div');
         overlay.id = 'journal-overlay';
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1020;display:flex;justify-content:center;align-items:center;';
-        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        overlay.onclick = (e) => { if (e.target === overlay) this.uiManager.closeAllMenus(); };
 
         const journal = document.createElement('div');
         journal.style.cssText = 'width:540px;max-height:450px;background:#f4ecd8;border:2px solid #c4a96a;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;font-family:Georgia,\"Times New Roman\",serif;box-shadow:0 8px 32px rgba(139,109,56,0.35);';
@@ -1263,7 +1268,7 @@ export class Start extends Phaser.Scene {
         clearBtn.onclick = () => {
             window.sessionStorage.removeItem('chemSimHistory');
             this.history = [];
-            overlay.remove();
+            this.uiManager.closeAllMenus();
         };
 
         const hint = document.createElement('span');

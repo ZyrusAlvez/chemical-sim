@@ -114,10 +114,10 @@ export class UIManager {
                 border-color: #f39c12;
             }
 
-            .nav-ui-group.left .friendly-btn:hover {
+            .nav-ui-group.left .friendly-btn:not(.active):hover {
                 transform: translateX(10px) scale(1.05);
             }
-            .nav-ui-group.right .friendly-btn:hover {
+            .nav-ui-group.right .friendly-btn:not(.active):hover {
                 transform: translateX(-10px) scale(1.05);
             }
 
