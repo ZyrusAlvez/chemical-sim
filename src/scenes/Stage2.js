@@ -99,6 +99,14 @@ export class Stage2 extends Phaser.Scene {
         // Load reactions data
         this.reactionSystem.loadReactions();
 
+        // Load reactions data
+        this.reactionSystem.loadReactions();
+
+        // FADE IN (Skeleton Removal)
+        if (window.startGameTransition) {
+            window.startGameTransition();
+        }
+
         this.add.image(928, 522, 'background').setDisplaySize(1856, 1044);
         this.shelf = this.add.image(-200, 1200, 'shelf').setOrigin(0, 1).setScale(1).setDepth(1);
 
@@ -247,13 +255,16 @@ export class Stage2 extends Phaser.Scene {
         this.prevStageBtn = this.add.image(1500, 950, 'previousstagebutton').setOrigin(1, 1).setScale(0.2).setInteractive({ cursor: 'pointer' });
 
         this.prevStageBtn.on('pointerdown', () => {
+            // Button Click Effect
             this.tweens.add({
                 targets: this.prevStageBtn,
                 scaleX: 0.18,
                 scaleY: 0.18,
                 duration: 100,
                 yoyo: true,
-                onComplete: () => this.scene.start('Start')
+                onComplete: () => {
+                    this.transitionToStart();
+                }
             });
         });
 
@@ -2246,6 +2257,7 @@ export class Stage2 extends Phaser.Scene {
             duration: 400,
             ease: 'Power2',
             onComplete: () => {
+                if (window.showSkeleton) window.showSkeleton();
                 this.scene.start('Start');
             }
         });

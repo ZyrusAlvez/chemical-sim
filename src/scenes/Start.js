@@ -336,6 +336,10 @@ export class Start extends Phaser.Scene {
             onExit: () => {
                 window.location.href = 'index.html?showThanks=true';
             },
+            onJournal: () => {
+                this.toggleHistory();
+            },
+
             onTutorial: () => {
                 this.scene.start('Tutorial', { from: 'Start' });
             },
@@ -343,6 +347,11 @@ export class Start extends Phaser.Scene {
                 this.toggleRecipeBook();
             }
         });
+
+        // FADE IN (Skeleton Removal)
+        if (window.startGameTransition) {
+            window.startGameTransition();
+        }
     }
 
 
@@ -429,6 +438,12 @@ export class Start extends Phaser.Scene {
 
         this.showCongratsScreen(compound);
         this.displayCompoundInInventory(compound);
+
+        // JOURNAL HISTORY
+        const elementsUsed = this.elementsInZone.map(e => e.texture.key);
+        this.addToHistory(compound, elementsUsed);
+
+
 
         // CHECK MILESTONES (5-10-15 grouped unlock system)
         const discoveryCount = compoundInventory.getDiscoveryCount();
@@ -1159,6 +1174,109 @@ export class Start extends Phaser.Scene {
                 bubble.destroy();
             }
         });
+    }
+
+    addToHistory(compound, reactants) {
+        // Construct a simple equation string
+        const symbolMap = {
+            'hydrogen': 'H', 'oxygen': 'O', 'carbon': 'C', 'sodium': 'Na',
+            'chlorine': 'Cl', 'magnesium': 'Mg', 'sulfur': 'S', 'iron': 'Fe',
+            'calcium': 'Ca', 'zinc': 'Zn', 'copper': 'Cu', 'nitrogen': 'N',
+            'silver': 'Ag', 'h2': 'H₂', 'o2': 'O₂', 'cl2': 'Cl₂', 'ch4': 'CH₄',
+            'hydrochloricAcid': 'HCl', 'sodiumHydroxide': 'NaOH', 'silverNitrate': 'AgNO₃',
+            'sodiumChloride': 'NaCl', 'copperSulfate': 'CuSO₄', 'methane': 'CH₄',
+            'calciumCarbonate': 'CaCO₃'
+        };
+
+        const inputs = reactants.map(r => symbolMap[r] || r.charAt(0).toUpperCase() + r.slice(1)).join(' + ');
+        const output = compound.symbol || compound.name;
+
+        // Create compatible history object
+        const entry = {
+            id: Date.now(),
+            type: 'Synthesis',
+            reactants: reactants,
+            products: [compound.name],
+            equation: `${inputs} → ${output}`,
+            timestamp: Date.now()
+        };
+
+        this.history.unshift(entry); // Add to front
+        window.sessionStorage.setItem('chemSimHistory', JSON.stringify(this.history));
+    }
+
+    toggleHistory() {
+        const existing = document.getElementById('journal-overlay');
+        if (existing) { existing.remove(); return; }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'journal-overlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1020;display:flex;justify-content:center;align-items:center;';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        const journal = document.createElement('div');
+        journal.style.cssText = 'width:540px;max-height:450px;background:#f4ecd8;border:2px solid #c4a96a;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;font-family:Georgia,\"Times New Roman\",serif;box-shadow:0 8px 32px rgba(139,109,56,0.35);';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'background:linear-gradient(135deg,#8b6d38,#a0824a);color:#fff;padding:14px 20px;font-weight:bold;font-size:18px;display:flex;justify-content:space-between;align-items:center;';
+        header.innerHTML = '<span>📜 FIELD NOTES</span><span style="font-size:13px;opacity:0.85">Reactions: ' + this.history.length + '</span>';
+
+        const list = document.createElement('div');
+        list.style.cssText = 'flex:1;overflow-y:auto;padding:16px 20px;';
+
+        if (this.history.length === 0) {
+            list.innerHTML = '<div style="text-align:center;color:#8b7d6b;padding:40px 0;font-style:italic;font-size:16px;">No discoveries yet.<br><span style="font-size:13px;margin-top:8px;display:block;">Combine elements to record your first reaction!</span></div>';
+        } else {
+            const groups = {};
+            this.history.forEach(r => {
+                const rawType = r.type || 'Other';
+                const type = rawType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                if (!groups[type]) groups[type] = [];
+                groups[type].push(r);
+            });
+
+            const typeColors = {
+                'Synthesis': '#2980b9'
+            };
+
+            Object.keys(groups).forEach(type => {
+                const color = typeColors[type] || '#8b6d38';
+                list.innerHTML += '<h3 style="color:' + color + ';font-weight:bold;margin:14px 0 8px 0;border-bottom:2px solid ' + color + ';padding-bottom:4px;font-size:15px;">' + type + '</h3>';
+                groups[type].forEach(r => {
+                    const productStr = Array.isArray(r.products) ? r.products.join(' + ') : r.products || '???';
+                    list.innerHTML += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed #c4a96a;">' +
+                        '<div style="color:#3c2f1a;font-weight:bold;font-size:14px;margin-bottom:3px;">' + r.equation + '</div>' +
+                        '<div style="color:#2ecc71;font-size:15px;font-weight:bold;">→ ' + productStr + '</div>' +
+                        '</div>';
+                });
+            });
+        }
+
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:10px 20px;background:#e8dcc8;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #c4a96a;';
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = '🗑️ Clear History';
+        clearBtn.style.cssText = 'background:transparent;border:1px solid #c0392b;color:#c0392b;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-weight:bold;';
+        clearBtn.onmouseenter = () => { clearBtn.style.background = '#c0392b'; clearBtn.style.color = '#fff'; };
+        clearBtn.onmouseleave = () => { clearBtn.style.background = 'transparent'; clearBtn.style.color = '#c0392b'; };
+        clearBtn.onclick = () => {
+            window.sessionStorage.removeItem('chemSimHistory');
+            this.history = [];
+            overlay.remove();
+        };
+
+        const hint = document.createElement('span');
+        hint.style.cssText = 'color:#8b7d6b;font-size:11px;font-style:italic;';
+        hint.textContent = '(Click outside to close)';
+
+        footer.appendChild(clearBtn);
+        footer.appendChild(hint);
+        journal.appendChild(header);
+        journal.appendChild(list);
+        journal.appendChild(footer);
+        overlay.appendChild(journal);
+        document.body.appendChild(overlay);
     }
 
     update() {
