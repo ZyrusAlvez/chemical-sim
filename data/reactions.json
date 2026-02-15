@@ -225,7 +225,7 @@
         "products": [
             "Fe2O3"
         ],
-        "equation": "Fe + O2 → Fe2O3",
+        "equation": "4Fe + 3O2 → 2Fe2O3",
         "energy_source": null,
         "visual_effect": "Glow / Rust Color Change",
         "product_effect": "glow",
@@ -257,7 +257,7 @@
         "products": [
             "CaO"
         ],
-        "equation": "Ca + O2 → CaO",
+        "equation": "2Ca + O2 → 2CaO",
         "energy_source": null,
         "visual_effect": "Bright Glow / Heat",
         "product_effect": "glow",
@@ -289,7 +289,7 @@
             "H2",
             "O2"
         ],
-        "equation": "H2O → H2 + O2",
+        "equation": "2H2O → 2H2 + O2",
         "energy_source": "Electricity High",
         "visual_effect": "Constant Bubbles",
         "product_effect": "bubbles",
@@ -323,7 +323,7 @@
             "Na",
             "Cl2"
         ],
-        "equation": "NaCl → Na + Cl2",
+        "equation": "2NaCl → 2Na + Cl2",
         "energy_source": "Electricity High (Molten)",
         "visual_effect": "Metal Formation at Electrode",
         "product_effect": "metal_glow",
@@ -357,7 +357,7 @@
             "MgCl2",
             "H2"
         ],
-        "equation": "Mg + HCl → MgCl2 + H2",
+        "equation": "Mg + 2HCl → MgCl2 + H2",
         "energy_source": null,
         "visual_effect": "High Heat / Rapid Bubbles",
         "product_effect": "rapid_bubbles",
@@ -459,7 +459,7 @@
             "CO2",
             "H2O"
         ],
-        "equation": "CH4 + O2 → CO2 + H2O",
+        "equation": "CH4 + 2O2 → CO2 + 2H2O",
         "energy_source": null,
         "visual_effect": "Blue Flame Animation",
         "product_effect": "blue_flame",

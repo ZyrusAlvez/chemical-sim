@@ -1,5 +1,6 @@
 import { compounds, elements } from '../../data/chemicals.js';
 import { compoundInventory } from '../CompoundInventory.js';
+import { UIManager } from '../UIManager.js';
 
 export class Start extends Phaser.Scene {
 
@@ -177,8 +178,7 @@ export class Start extends Phaser.Scene {
                 repeat: -1
             });
 
-            // HINT TRIGGER: Fire on every drop for dynamic narrowing
-            this.updateBeakerState();
+            // Hints are now ONLY triggered by 3-error rule on combine, not placement
         });
 
         this.input.on('dragend', (pointer, gameObject) => {
@@ -228,7 +228,7 @@ export class Start extends Phaser.Scene {
             } else if (!foundCompound && elementsInZone.length > 0) {
                 this.wrongAttempts++;
                 if (this.wrongAttempts >= 3) {
-                    this.showClosestHint(elementsInZone);
+                    this.updateBeakerState();
                     this.wrongAttempts = 0; // Reset counter
                 } else {
                     this.showWrongFormulaMessage();
@@ -327,97 +327,25 @@ export class Start extends Phaser.Scene {
 
             // Reset slot index
             this.nextSlotIndex = 0;
-
-            // Flash effect to confirm clear
             this.cameras.main.flash(200, 255, 0, 0);
         });
 
-        // =========================================
-        // RIGHT SIDE TOOLBAR
-        // =========================================
-        const toolX = 1880;
-        const toolGap = 85;
-        let currentToolY = 50;
-
-
-
-        const buttonStyle = {
-            fontSize: '22px',
-            fill: '#ffffff',
-            fontFamily: 'Verdana',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 3,
-            padding: { x: 30, y: 15 },
-            shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, stroke: true, fill: true }
-        };
-
-        // EXIT BUTTON (Top Left) - Tab Style
-        const exitBtn = this.add.text(0, 50, '✕ EXIT', {
-            ...buttonStyle,
-            backgroundColor: '#c0392b', // Red
-            fixedWidth: 120,
-            align: 'center',
-            padding: { x: 10, y: 15 } // Adjust padding for tab look
-        })
-            .setOrigin(0, 0) // Anchor top-left
-            .setInteractive({ cursor: 'pointer' })
-            .setDepth(1000) // Layering: z-index 1000 equivalent
-            .setScrollFactor(0);
-
-        // Add a "Tab" shape mask or background if needed, but text with background color works as a simple tab
-        // To make it look "clipped", x=0 is good.
-
-        exitBtn.on('pointerover', () => {
-            exitBtn.setBackgroundColor('#e74c3c');
+        // ── STRICT UI NAVIGATION (DOM-based) ──
+        this.uiManager = new UIManager(this);
+        this.uiManager.createNavbar({
+            onExit: () => {
+                window.location.href = 'index.html?showThanks=true';
+            },
+            onTutorial: () => {
+                this.scene.start('Tutorial', { from: 'Start' });
+            },
+            onRecipes: () => {
+                this.toggleRecipeBook();
+            }
         });
-        exitBtn.on('pointerout', () => {
-            exitBtn.setBackgroundColor('#c0392b');
-        });
-        exitBtn.on('pointerdown', () => {
-            window.location.href = 'index.html?showThanks=true';
-        });
-
-        // 1. TUTORIAL (Top)
-        const tutorialBtn = this.add.text(toolX, currentToolY, '📖 TUTORIAL', {
-            ...buttonStyle,
-            backgroundColor: '#8e44ad'
-        })
-            .setOrigin(1, 0)
-            .setInteractive({ cursor: 'pointer' })
-            .setDepth(100);
-
-        tutorialBtn.on('pointerover', () => {
-            tutorialBtn.setScale(1.05);
-            tutorialBtn.setShadow(0, 0, '#8e44ad', 20, true, true);
-        });
-        tutorialBtn.on('pointerout', () => {
-            tutorialBtn.setScale(1);
-            tutorialBtn.setShadow(2, 2, '#000000', 4, true, true);
-        });
-        tutorialBtn.on('pointerdown', () => this.scene.start('Tutorial', { from: 'Start' }));
-
-        currentToolY += toolGap;
-
-        // 2. RECIPES (Bottom)
-        const helpBtn = this.add.text(toolX, currentToolY, '⚡ RECIPES', {
-            ...buttonStyle,
-            backgroundColor: '#27ae60'
-        })
-            .setOrigin(1, 0)
-            .setInteractive({ cursor: 'pointer' })
-            .setDepth(100);
-
-        helpBtn.on('pointerover', () => {
-            helpBtn.setScale(1.05);
-            helpBtn.setShadow(0, 0, '#27ae60', 20, true, true);
-        });
-        helpBtn.on('pointerout', () => {
-            helpBtn.setScale(1);
-            helpBtn.setShadow(2, 2, '#000000', 4, true, true);
-        });
-        helpBtn.on('pointerdown', () => this.toggleRecipeBook());
     }
+
+
 
     loadExistingCompounds() {
         const existingCompounds = compoundInventory.getCreatedCompounds();
@@ -638,22 +566,22 @@ export class Start extends Phaser.Scene {
                     { name: 'Calcium Carbonate (CaCO\u2083)', formula: 'Ca + C + 3O' },
                     { name: 'Copper Sulfate (CuSO\u2084)', formula: 'Cu + S + 4O' },
                     { name: 'Silver Nitrate (AgNO\u2083)', formula: 'Ag + N + 3O' },
-                    { name: 'Iron Oxide (Fe\u2082O\u2083)', formula: 'Fe + O\u2082' },
+                    { name: 'Iron Oxide (Fe\u2082O\u2083)', formula: '4Fe + 3O\u2082 \u2192 2Fe\u2082O\u2083' },
                     { name: 'Magnesium Chloride (MgCl\u2082)', formula: 'Mg + Cl\u2082' },
-                    { name: 'Calcium Oxide (CaO)', formula: 'Ca + O\u2082' },
+                    { name: 'Calcium Oxide (CaO)', formula: '2Ca + O\u2082 \u2192 2CaO' },
                 ]
             },
             {
                 title: 'Decomposition', icon: '\uD83D\uDCA5', color: '#c0392b', tier: 5, recipes: [
-                    { name: 'Water \u2192 H\u2082 + O\u2082', formula: 'H\u2082O + Electricity' },
-                    { name: 'Salt \u2192 Na + Cl\u2082', formula: 'NaCl + Electricity' },
+                    { name: '2H\u2082O \u2192 2H\u2082 + O\u2082', formula: 'H\u2082O + Electricity' },
+                    { name: '2NaCl \u2192 2Na + Cl\u2082', formula: 'NaCl + Electricity' },
                     { name: 'CaCO\u2083 \u2192 CaO + CO\u2082', formula: 'CaCO\u2083 + High Heat' },
                 ]
             },
             {
                 title: 'Single Displacement', icon: '\u2194\uFE0F', color: '#8e44ad', tier: 10, recipes: [
                     { name: 'Zn + HCl \u2192 ZnCl\u2082 + H\u2082', formula: 'Zinc + Hydrochloric Acid' },
-                    { name: 'Mg + HCl \u2192 MgCl\u2082 + H\u2082', formula: 'Magnesium + Hydrochloric Acid' },
+                    { name: 'Mg + 2HCl \u2192 MgCl\u2082 + H\u2082', formula: 'Magnesium + Hydrochloric Acid' },
                     { name: 'Fe + CuSO\u2084 \u2192 FeSO\u2084 + Cu', formula: 'Iron + Copper Sulfate' },
                     { name: 'Zn + CuSO\u2084 \u2192 ZnSO\u2084 + Cu', formula: 'Zinc + Copper Sulfate' },
                 ]
@@ -672,7 +600,7 @@ export class Start extends Phaser.Scene {
             {
                 title: 'Combustion', icon: '\uD83D\uDD25', color: '#e67e22', tier: 15, recipes: [
                     { name: 'Mg + O\u2082 \u2192 MgO', formula: 'Magnesium + Oxygen Gas + Heat' },
-                    { name: 'CH\u2084 + O\u2082 \u2192 CO\u2082 + H\u2082O', formula: 'Methane + Oxygen Gas' },
+                    { name: 'CH\u2084 + 2O\u2082 \u2192 CO\u2082 + 2H\u2082O', formula: 'Methane + Oxygen Gas' },
                 ]
             },
         ];
@@ -1082,9 +1010,9 @@ export class Start extends Phaser.Scene {
             return;
         }
 
-        // Zinc  →  znhcl.png
+        // Zinc  →  zncuso4.png (do NOT show znhcl when only zinc is present)
         if (has('zinc')) {
-            this.showHint({ image: 'znhcl' });
+            this.showHint({ image: 'zncuso4' });
             return;
         }
 
