@@ -193,8 +193,10 @@
             font-family: BreakingBad, sans-serif;
         }
 
+
+
         .ff-formulae {
-            font-family: AtticAntique;
+            font-family: AtticAntique, sans-serif;
         }
 
         .fs-1 {
@@ -409,181 +411,149 @@
     <div class="pos-fixed bottom-0 left-0 | w-100 h-100 | opa-0 bg-4 mbm-overlay"
         style="animation: smoke 5s linear 2.5s infinite forwards;"></div>
 
-    <!-- Main title -->
-    <header class="d-flex | pos-fixed top-50 left-50 t-tX-50 t-tY-50 z-3"
-        style="transform: translateX(-50%) translateY(-50%);">
-        <h1 class="d-flex fd-column | m-0 | ff-400" scroll-btween="header" data-detector="final_text_detector"
-            data-transform="perspective(800px) translateZ(|0 to -400|px)">
-            <!-- (C)hem -->
-            <span class="d-flex ai-center | pos-relative">
-                <!-- Periodic table 1 container -->
-                <span class="d-flex | pos-relative | ar-1" style="padding: 100px;" scroll-btween="table1"
-                    data-detector="table1_detector" data-transform="perspective(1400px) translateZ(|500 to -500|px)"
-                    data-opacity="|0:0 to 50:0.5 to 60:0.3 to 100:0|">
-                </span>
-                <!-- Permanent C element -->
-                <span class="d-flex | pos-absolute top-0 left-0 z-1 | ar-1 | bg-1"
-                    style="padding: 100px; outline: 3px solid currentColor;" scroll-btween="carbon"
-                    data-detector="table1_detector" data-opacity="|0:0 to 40:0 to 50:0.8 to 100:1|">
-                    <span class="d-flex jc-space-between | pos-absolute top-0 left-0 | w-100 p-1">
-                        <code class="ff-400 fs-1">12.011</code>
-                        <code class="maxw-2ch | ff-400 fs-1 ta-right">+4 -4</code>
+    <!-- Main title + Play wrapped in a single Flexbox column to prevent zoom overlap -->
+    <div id="chemsim-intro-stack" class="pos-fixed top-0 left-0 w-100 h-100 z-3"
+        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; pointer-events: none;">
+
+        <!-- Main title -->
+        <header style="pointer-events: none; flex-shrink: 0;">
+            <h1 class="d-flex fd-column | m-0 | ff-400" scroll-btween="header" data-detector="final_text_detector"
+                data-transform="perspective(800px) translateZ(|0 to -400|px)">
+                <!-- (C)hem -->
+                <span class="d-flex ai-center | pos-relative">
+                    <!-- Periodic table 1 container -->
+                    <span class="d-flex | pos-relative | ar-1" style="padding: 100px;" scroll-btween="table1"
+                        data-detector="table1_detector" data-transform="perspective(1400px) translateZ(|500 to -500|px)"
+                        data-opacity="|0:0 to 50:0.5 to 60:0.3 to 100:0|">
                     </span>
-                    <span class="d-flex fd-column | pos-absolute bottom-0 left-0 | p-1 | fs-2">
-                        <span class="d-flex fd-column">
-                            <code class="ff-700">6</code>
-                            <code class="ff-400 fs-1">2-4</code>
+                    <!-- Permanent C element -->
+                    <span class="d-flex | pos-absolute top-0 left-0 z-1 | ar-1 | bg-1"
+                        style="padding: 100px; outline: 3px solid currentColor;" scroll-btween="carbon"
+                        data-detector="table1_detector" data-opacity="|0:0 to 40:0 to 50:0.8 to 100:1|">
+                        <span class="d-flex jc-space-between | pos-absolute top-0 left-0 | w-100 p-1">
+                            <code class="ff-400 fs-1">12.011</code>
+                            <code class="maxw-2ch | ff-400 fs-1 ta-right">+4 -4</code>
                         </span>
-                    </span>
-                    <span class="pos-absolute top-50 left-50 t-tY-50 t-tX-50 | mt-offset-1 | ff-700 ta-center"
-                        style="transform: translate(-50%, -50%); font-size: 120px;">C</span>
-                </span>
-                <!-- hem text first line -->
-                <span class="pl-2 mt-offset-2 | ff-heart lh-special-1 | c-0 bsize-cover bpos-center | __rust"
-                    scroll-btween="hem" data-detector="final_text_detector" data-opacity="|0:0 to 20:1 to 100:1|"
-                    style="font-size: 180px;">
-                    hem
-                </span>
-            </span>
-
-            <!-- (Si)m -->
-            <span class="d-flex ai-center | pos-relative | ml-special-1 mt-2px" ml-special-2="xs">
-                <!-- Periodic table 2 container -->
-                <span class="d-flex | pos-relative | ar-1" style="padding: 100px;" scroll-btween="table2"
-                    data-detector="table2_detector" data-transform="perspective(1400px) translateZ(|500 to -500|px)"
-                    data-opacity="|0:0 to 50:0.5 to 100:0|">
-                </span>
-                <!-- Permanent Si element -->
-                <span class="d-flex | pos-absolute top-0 left-0 | ar-1 | bg-1"
-                    style="padding: 100px; outline: 3px solid currentColor;" scroll-btween="silicon"
-                    data-detector="table2_detector" data-opacity="|0:0 to 40:0 to 50:0.8 to 100:1|">
-                    <span class="d-flex jc-space-between | pos-absolute top-0 left-0 | w-100 p-1">
-                        <code class="ff-400 fs-1">28.085</code>
-                        <code class="maxw-2ch | ff-400 fs-1 ta-right">+4 -4</code>
-                    </span>
-                    <span class="d-flex fd-column | pos-absolute bottom-0 left-0 | p-1 | fs-2">
-                        <span class="d-flex fd-column">
-                            <code class="ff-700">14</code>
-                            <code class="ff-400 fs-1">2-8-4</code>
+                        <span class="d-flex fd-column | pos-absolute bottom-0 left-0 | p-1 | fs-2">
+                            <span class="d-flex fd-column">
+                                <code class="ff-700">6</code>
+                                <code class="ff-400 fs-1">2-4</code>
+                            </span>
                         </span>
+                        <span class="pos-absolute top-50 left-50 t-tY-50 t-tX-50 | mt-offset-1 | ff-700 ta-center"
+                            style="transform: translate(-50%, -50%); font-size: 120px;">C</span>
                     </span>
-                    <span class="pos-absolute top-50 left-50 t-tY-50 t-tX-50 | mt-offset-1 | ff-700 ta-center"
-                        style="transform: translate(-50%, -50%); font-size: 120px;">Si</span>
-                </span>
-                <!-- m text second line -->
-                <span class="pl-2 mt-offset-2 | ff-heart lh-special-1 | c-0 bsize-cover bpos-center | __rust"
-                    scroll-btween="m" data-detector="final_text_detector" data-opacity="|0:0 to 20:1 to 100:1|"
-                    style="font-size: 180px;">
-                    m
-                </span>
-            </span>
-        </h1>
-    </header>
-
-    <!-- Formulaes -->
-    <ul class="pos-fixed bottom-0 left-0 | w-100 h-100 p-0 m-0 | ls-none" style="perspective: 800px;"
-        scroll-btween="formulaes" data-detector="table1_detector" data-opacity="|0:1 to 30:0 to 100:0|" d-none="xs">
-        <li class="pos-fixed | fs-8 ff-formulae | opa-0"
-            style="top: 40%; left: 50%; animation: formulae1 15s linear 0s infinite forwards;">C<sub>5</sub>
-            H<sub>10</sub> N</li>
-        <li class="pos-fixed | fs-6 ff-formulae | opa-0"
-            style="top: 20%; left: 80%; animation: formulae2 10s linear 1s infinite forwards;">C<sub>5</sub>
-            H<sub>10</sub> N</li>
-        <li class="pos-fixed | fs-5 ff-formulae | opa-0"
-            style="top: 45%; left: 45%; animation: formulae2 12s linear 2s infinite forwards;">C<sub>5</sub>
-            H<sub>10</sub> N</li>
-        <li class="pos-fixed | fs-8 ff-formulae | opa-0"
-            style="top: 60%; left: 15%; animation: formulae1 9s linear 0s infinite forwards;">C<sub>5</sub></li>
-        <li class="pos-fixed | fs-7 ff-formulae | opa-0"
-            style="top: 80%; left: 35%; animation: formulae1 12s linear 2s infinite forwards;">C<sub>5</sub></li>
-        <li class="pos-fixed | fs-10 ff-formulae | opa-0"
-            style="top: 20%; left: 20%; animation: formulae1 15s linear 3s infinite forwards;">H<sub>10</sub></li>
-        <li class="pos-fixed | fs-10 ff-formulae | opa-0"
-            style="top: 60%; left: 80%; animation: formulae2 10s linear 1s infinite forwards;">H<sub>10</sub></li>
-        <li class="pos-fixed | fs-9 ff-formulae | opa-0"
-            style="top: 10%; left: 55%; animation: formulae1 7s linear 1s infinite forwards;">N</li>
-        <li class="pos-fixed | fs-8 ff-formulae | opa-0"
-            style="top: 60%; left: 25%; animation: formulae2 10s linear 3s infinite forwards;">N</li>
-        <li class="pos-fixed | fs-7 ff-formulae | opa-0"
-            style="top: 30%; left: 60%; animation: formulae2 8s linear 2s infinite forwards;">149.24</li>
-        <li class="pos-fixed | fs-6 ff-formulae | opa-0"
-            style="top: 60%; left: 20%; animation: formulae1 5s linear 4s infinite forwards;">149.24</li>
-        <li class="pos-fixed | fs-5 ff-formulae | opa-0"
-            style="top: 20%; left: 20%; animation: formulae1 5s linear 4s infinite forwards;">meth</li>
-        <li class="pos-fixed | fs-4 ff-formulae | opa-0"
-            style="top: 60%; left: 50%; animation: formulae2 7s linear 2s infinite forwards;">meth</li>
-    </ul>
-
-    <!-- Start help -->
-    <p class="d-flex fd-column ai-center jc-center | pos-fixed top-0 left-0 | w-100 h-100 m-0"
-        scroll-btween="scroll_text" data-detector="table1_detector" data-opacity="|0:1 to 30:0 to 100:0|"
-        data-transform="perspective(800px) translateZ(-|0:0 to 30:700 to 100:700|px)"
-        style="color: #4ea281; font-size: 24px; font-family: SFPro-Bold;">
-        Scroll Down
-    </p>
-
-    <!-- Play Button & Tutorial Container -->
-    <div class="d-flex fd-column ai-center | pos-fixed bottom-0 left-0 | w-100" scroll-btween="play_button"
-        data-detector="final_text_detector" data-opacity="|0:0 to 50:0 to 85:1 to 100:1|"
-        style="pointer-events: none; z-index: 5; padding-bottom: 5vh; gap: 20px;">
-
-        <!-- Play Button -->
-        <a href="game.html" id="play-btn" class="d-flex ai-center"
-            style="text-decoration: none; pointer-events: auto; transition: transform 0.3s; filter: drop-shadow(0 0 20px rgba(78, 162, 129, 0.8));"
-            onmouseover="this.style.transform='scale(1.15)'; this.style.filter='drop-shadow(0 0 30px rgba(78, 162, 129, 1))'"
-            onmouseout="this.style.transform='scale(1)'; this.style.filter='drop-shadow(0 0 20px rgba(78, 162, 129, 0.8))'"
-            onclick="event.preventDefault(); document.body.style.transition='opacity 0.5s ease'; document.body.style.opacity='0'; setTimeout(function(){ window.location.href='game.html'; }, 500);">
-            <!-- P element (Phosphorus) -->
-            <span class="d-flex | pos-relative | ar-1 | bg-1"
-                style="padding: 24px; outline: 3px solid #4ea281; color: #4ea281; box-shadow: 0 0 15px rgba(78, 162, 129, 0.6);">
-                <span class="d-flex jc-space-between | pos-absolute top-0 left-0 | w-100 p-1">
-                    <code class="ff-400" style="font-size: 7px;">30.974</code>
-                    <code class="maxw-2ch | ff-400 ta-right" style="font-size: 7px;">+5 +3 -3</code>
-                </span>
-                <span class="d-flex fd-column | pos-absolute bottom-0 left-0 | p-1">
-                    <span class="d-flex fd-column">
-                        <code class="ff-700" style="font-size: 9px;">15</code>
-                        <code class="ff-400" style="font-size: 7px;">2-8-5</code>
+                    <!-- hem text first line -->
+                    <span class="pl-2 mt-offset-2 ff-700 lh-special-1" scroll-btween="hem"
+                        data-detector="final_text_detector" data-opacity="|0:0 to 20:1 to 100:1|"
+                        style="font-size: 160px; color: #4ea281; letter-spacing: -2px;">
+                        hem
                     </span>
                 </span>
-                <span class="pos-absolute top-50 left-50 t-tY-50 t-tX-50 | mt-offset-1 | ff-700 ta-center"
-                    style="transform: translate(-50%, -50%); font-size: 36px;">P</span>
-            </span>
-            <!-- La element (Lanthanum) -->
-            <span class="d-flex | pos-relative | ar-1 | bg-1 | ml-1"
-                style="padding: 24px; outline: 3px solid #4ea281; color: #4ea281; box-shadow: 0 0 15px rgba(78, 162, 129, 0.6);">
-                <span class="d-flex jc-space-between | pos-absolute top-0 left-0 | w-100 p-1">
-                    <code class="ff-400" style="font-size: 7px;">138.905</code>
-                    <code class="maxw-2ch | ff-400 ta-right" style="font-size: 7px;">+3</code>
-                </span>
-                <span class="d-flex fd-column | pos-absolute bottom-0 left-0 | p-1">
-                    <span class="d-flex fd-column">
-                        <code class="ff-700" style="font-size: 9px;">57</code>
-                        <code class="ff-400" style="font-size: 7px;">2-8-18-18-9-2</code>
+
+                <!-- (Si)m -->
+                <span class="d-flex ai-center | pos-relative | ml-special-1 mt-2px" ml-special-2="xs">
+                    <!-- Periodic table 2 container -->
+                    <span class="d-flex | pos-relative | ar-1" style="padding: 100px;" scroll-btween="table2"
+                        data-detector="table2_detector" data-transform="perspective(1400px) translateZ(|500 to -500|px)"
+                        data-opacity="|0:0 to 50:0.5 to 100:0|">
+                    </span>
+                    <!-- Permanent Si element -->
+                    <span class="d-flex | pos-absolute top-0 left-0 | ar-1 | bg-1"
+                        style="padding: 100px; outline: 3px solid currentColor;" scroll-btween="silicon"
+                        data-detector="table2_detector" data-opacity="|0:0 to 40:0 to 50:0.8 to 100:1|">
+                        <span class="d-flex jc-space-between | pos-absolute top-0 left-0 | w-100 p-1">
+                            <code class="ff-400 fs-1">28.085</code>
+                            <code class="maxw-2ch | ff-400 fs-1 ta-right">+4 -4</code>
+                        </span>
+                        <span class="d-flex fd-column | pos-absolute bottom-0 left-0 | p-1 | fs-2">
+                            <span class="d-flex fd-column">
+                                <code class="ff-700">14</code>
+                                <code class="ff-400 fs-1">2-8-4</code>
+                            </span>
+                        </span>
+                        <span class="pos-absolute top-50 left-50 t-tY-50 t-tX-50 | mt-offset-1 | ff-700 ta-center"
+                            style="transform: translate(-50%, -50%); font-size: 120px;">Si</span>
+                    </span>
+                    <!-- m text second line -->
+                    <span class="pl-2 mt-offset-2 ff-700 lh-special-1" scroll-btween="m"
+                        data-detector="final_text_detector" data-opacity="|0:0 to 20:1 to 100:1|"
+                        style="font-size: 160px; color: #4ea281; letter-spacing: -2px;">
+                        m
                     </span>
                 </span>
-                <span class="pos-absolute top-50 left-50 t-tY-50 t-tX-50 | mt-offset-1 | ff-700 ta-center"
-                    style="transform: translate(-50%, -50%); font-size: 36px;">La</span>
-            </span>
-            <!-- "y" text -->
-            <span class="pl-2 mt-offset-2 | ff-heart lh-special-1 | c-0 bsize-cover bpos-center | __rust"
-                style="font-size: 55px;">
-                y
-            </span>
-        </a>
+            </h1>
+        </header>
 
-        <p class="m-0"
-            style="color: #4ea281; font-size: 16px; font-family: SFPro-Regular; margin-bottom: 10px !important;">
-            Click to Start
+        <!-- Formulaes -->
+        <ul class="pos-fixed bottom-0 left-0 | w-100 h-100 p-0 m-0 | ls-none" style="perspective: 800px;"
+            scroll-btween="formulaes" data-detector="table1_detector" data-opacity="|0:1 to 30:0 to 100:0|" d-none="xs">
+            <li class="pos-fixed | fs-8 ff-formulae | opa-0"
+                style="top: 40%; left: 50%; animation: formulae1 15s linear 0s infinite forwards;">C<sub>5</sub>
+                H<sub>10</sub> N</li>
+            <li class="pos-fixed | fs-6 ff-formulae | opa-0"
+                style="top: 20%; left: 80%; animation: formulae2 10s linear 1s infinite forwards;">C<sub>5</sub>
+                H<sub>10</sub> N</li>
+            <li class="pos-fixed | fs-5 ff-formulae | opa-0"
+                style="top: 45%; left: 45%; animation: formulae2 12s linear 2s infinite forwards;">C<sub>5</sub>
+                H<sub>10</sub> N</li>
+            <li class="pos-fixed | fs-8 ff-formulae | opa-0"
+                style="top: 60%; left: 15%; animation: formulae1 9s linear 0s infinite forwards;">C<sub>5</sub></li>
+            <li class="pos-fixed | fs-7 ff-formulae | opa-0"
+                style="top: 80%; left: 35%; animation: formulae1 12s linear 2s infinite forwards;">C<sub>5</sub></li>
+            <li class="pos-fixed | fs-10 ff-formulae | opa-0"
+                style="top: 20%; left: 20%; animation: formulae1 15s linear 3s infinite forwards;">H<sub>10</sub></li>
+            <li class="pos-fixed | fs-10 ff-formulae | opa-0"
+                style="top: 60%; left: 80%; animation: formulae2 10s linear 1s infinite forwards;">H<sub>10</sub></li>
+            <li class="pos-fixed | fs-9 ff-formulae | opa-0"
+                style="top: 10%; left: 55%; animation: formulae1 7s linear 1s infinite forwards;">N</li>
+            <li class="pos-fixed | fs-8 ff-formulae | opa-0"
+                style="top: 60%; left: 25%; animation: formulae2 10s linear 3s infinite forwards;">N</li>
+            <li class="pos-fixed | fs-7 ff-formulae | opa-0"
+                style="top: 30%; left: 60%; animation: formulae2 8s linear 2s infinite forwards;">149.24</li>
+            <li class="pos-fixed | fs-6 ff-formulae | opa-0"
+                style="top: 60%; left: 20%; animation: formulae1 5s linear 4s infinite forwards;">149.24</li>
+            <li class="pos-fixed | fs-5 ff-formulae | opa-0"
+                style="top: 20%; left: 20%; animation: formulae1 5s linear 4s infinite forwards;">meth</li>
+            <li class="pos-fixed | fs-4 ff-formulae | opa-0"
+                style="top: 60%; left: 50%; animation: formulae2 7s linear 2s infinite forwards;">meth</li>
+        </ul>
+
+        <!-- Start help -->
+        <p class="d-flex fd-column ai-center jc-center | pos-fixed top-0 left-0 | w-100 h-100 m-0"
+            scroll-btween="scroll_text" data-detector="table1_detector" data-opacity="|0:1 to 30:0 to 100:0|"
+            data-transform="perspective(800px) translateZ(-|0:0 to 30:700 to 100:700|px)"
+            style="color: #4ea281; font-size: 24px; font-family: SFPro-Bold;">
+            Scroll Down
         </p>
 
-        <!-- Tutorial Button - Premium Text Style -->
-        <a href="game.html?scene=tutorial"
-            style="text-decoration: none; pointer-events: auto; padding: 8px 24px; border: 1px solid #4ea281; border-radius: 4px; color: #4ea281; font-family: SFPro-Bold, Verdana; font-size: 14px; letter-spacing: 1px; transition: all 0.3s; pointer-events: auto; text-transform: uppercase; background: rgba(0,0,0,0.4);"
-            onmouseover="this.style.background='#4ea281'; this.style.color='#000000'; this.style.boxShadow='0 0 10px rgba(78, 162, 129, 0.4)'"
-            onmouseout="this.style.background='rgba(0,0,0,0.4)'; this.style.color='#4ea281'; this.style.boxShadow='none'">
-            Tutorial
-        </a>
+        <!-- Play Button & Tutorial (inside the same flex column) -->
+        <div scroll-btween="play_button" data-detector="final_text_detector"
+            data-opacity="|0:0 to 50:0 to 85:1 to 100:1|"
+            style="display: flex; flex-direction: column; align-items: center; gap: 16px; pointer-events: none; flex-shrink: 0;">
+
+            <!-- Play Button -->
+            <a href="game.html" id="play-btn"
+                style="text-decoration: none; pointer-events: auto; display: inline-block; padding: clamp(10px, 2vw, 16px) clamp(36px, 7vw, 70px); background: linear-gradient(135deg, #4ea281, #2ecc71); color: #ffffff; font-family: SFPro-Bold, sans-serif; font-size: clamp(1.2rem, 2.5vw, 2rem); letter-spacing: 6px; text-transform: uppercase; border-radius: 12px; border: 3px solid #4ea281; box-shadow: 0 0 30px rgba(78, 162, 129, 0.6), 0 8px 25px rgba(0,0,0,0.4); transition: transform 0.25s, box-shadow 0.25s, filter 0.25s;"
+                onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 0 50px rgba(78, 162, 129, 0.9), 0 12px 35px rgba(0,0,0,0.5)'; this.style.filter='brightness(1.15)'"
+                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 0 30px rgba(78, 162, 129, 0.6), 0 8px 25px rgba(0,0,0,0.4)'; this.style.filter='brightness(1)'"
+                onclick="event.preventDefault(); document.body.style.transition='opacity 0.5s ease'; document.body.style.opacity='0'; setTimeout(function(){ window.location.href='game.html'; }, 500);">
+                PLAY
+            </a>
+
+            <p class="m-0"
+                style="color: #4ea281; font-size: clamp(12px, 1.5vw, 15px); font-family: SFPro-Regular, sans-serif; opacity: 0.7;">
+                Click to Start
+            </p>
+
+            <!-- Tutorial Button -->
+            <a href="game.html?scene=tutorial"
+                style="text-decoration: none; pointer-events: auto; padding: clamp(6px, 1vw, 9px) clamp(18px, 3.5vw, 28px); border: 1px solid #4ea281; border-radius: 6px; color: #4ea281; font-family: SFPro-Bold, sans-serif; font-size: clamp(11px, 1.2vw, 13px); letter-spacing: 2px; transition: all 0.3s; text-transform: uppercase; background: rgba(0,0,0,0.4);"
+                onmouseover="this.style.background='#4ea281'; this.style.color='#000000'; this.style.boxShadow='0 0 10px rgba(78, 162, 129, 0.4)'"
+                onmouseout="this.style.background='rgba(0,0,0,0.4)'; this.style.color='#4ea281'; this.style.boxShadow='none'">
+                Tutorial
+            </a>
+        </div>
     </div>
 
 

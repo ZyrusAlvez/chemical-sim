@@ -1,7 +1,7 @@
 import { compounds, elements } from '../../data/chemicals.js';
 import { compoundInventory } from '../CompoundInventory.js';
 import { ReactionSystem } from '../ReactionSystem.js';
-import { UIManager } from '../UIManager.js';
+
 
 export class Stage2 extends Phaser.Scene {
 
@@ -99,9 +99,6 @@ export class Stage2 extends Phaser.Scene {
         // Load reactions data
         this.reactionSystem.loadReactions();
 
-        // Load reactions data
-        this.reactionSystem.loadReactions();
-
         // FADE IN (Skeleton Removal)
         if (window.startGameTransition) {
             window.startGameTransition();
@@ -141,7 +138,6 @@ export class Stage2 extends Phaser.Scene {
         this.electricButtonPressed = false;
         this.initialHeatButtonPressed = false;
         this.highHeatButtonPressed = false;
-        this.activeEnergySource = null;
         this.activeEnergySource = null;
 
         // Generate Compound Slots - RESTORED ORIGINAL LAYOUT + NEW ROW
@@ -269,8 +265,9 @@ export class Stage2 extends Phaser.Scene {
         });
 
 
-        // ── STRICT UI NAVIGATION (DOM-based) ──
-        this.uiManager = new UIManager(this);
+        // ── STRICT UI NAVIGATION (DOM-based, GLOBAL SINGLETON) ──
+        this.uiManager = window.gameUIManager;
+        this.uiManager.show();
 
         // Load history for Journal
         const savedHistory = window.sessionStorage.getItem('chemSimHistory');
@@ -285,6 +282,7 @@ export class Stage2 extends Phaser.Scene {
                 this.toggleHistory();
             },
             onTutorial: () => {
+                this.uiManager.hide();
                 this.scene.start('Tutorial', { from: 'Stage2' });
             },
             onRecipes: () => {
@@ -321,12 +319,12 @@ export class Stage2 extends Phaser.Scene {
                 title: 'Decomposition', icon: '\uD83D\uDCA5', color: '#c0392b', tier: 5, recipes: [
                     { name: '2H\u2082O \u2192 2H\u2082 + O\u2082', formula: 'H\u2082O + Electricity' },
                     { name: '2NaCl \u2192 2Na + Cl\u2082', formula: 'NaCl + Electricity' },
-                    { name: 'CaCO\u2083 \u2192 CaO + CO\u2082', formula: 'CaCO\u2083 + High Heat' },
+                    { name: 'CaCO\u2083 \u2192 CaO + CO\u2082', formula: 'CaCO\u2083' },
                 ]
             },
             {
                 title: 'Single Displacement', icon: '\u2194\uFE0F', color: '#8e44ad', tier: 10, recipes: [
-                    { name: 'Zn + HCl \u2192 ZnCl\u2082 + H\u2082', formula: 'Zinc + Hydrochloric Acid' },
+                    { name: 'Zn + 2HCl \u2192 ZnCl\u2082 + H\u2082', formula: 'Zinc + Hydrochloric Acid' },
                     { name: 'Mg + 2HCl \u2192 MgCl\u2082 + H\u2082', formula: 'Magnesium + Hydrochloric Acid' },
                     { name: 'Fe + CuSO\u2084 \u2192 FeSO\u2084 + Cu', formula: 'Iron + Copper Sulfate' },
                     { name: 'Zn + CuSO\u2084 \u2192 ZnSO\u2084 + Cu', formula: 'Zinc + Copper Sulfate' },
@@ -345,7 +343,7 @@ export class Stage2 extends Phaser.Scene {
             },
             {
                 title: 'Combustion', icon: '\uD83D\uDD25', color: '#e67e22', tier: 15, recipes: [
-                    { name: 'Mg + O\u2082 \u2192 MgO', formula: 'Magnesium + Oxygen Gas + Heat' },
+                    { name: '2Mg + O\u2082 \u2192 2MgO', formula: 'Magnesium + Oxygen Gas' },
                     { name: 'CH\u2084 + 2O\u2082 \u2192 CO\u2082 + 2H\u2082O', formula: 'Methane + Oxygen Gas' },
                 ]
             },
@@ -383,10 +381,55 @@ export class Stage2 extends Phaser.Scene {
             }
         });
 
-        // FOOTER
+        // FOOTER with RESET BUTTON
         const footer = document.createElement('div');
-        footer.style.cssText = 'padding:8px;background:#eaecf0;text-align:center;color:#95a5a6;font-size:11px;font-style:italic;';
-        footer.innerText = '(Click outside to close)';
+        footer.style.cssText = 'padding:10px 20px;background:#eaecf0;display:flex;justify-content:space-between;align-items:center;';
+
+        const closeHint = document.createElement('span');
+        closeHint.style.cssText = 'color:#95a5a6;font-size:11px;font-style:italic;';
+        closeHint.innerText = '(Click outside to close)';
+
+        const resetBtn = document.createElement('button');
+        resetBtn.innerText = '🔄 RESET PROGRESS';
+        resetBtn.style.cssText = 'background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-family:Verdana,sans-serif;font-size:11px;font-weight:bold;cursor:pointer;transition:background 0.2s;';
+        resetBtn.onmouseenter = () => { resetBtn.style.background = '#c0392b'; };
+        resetBtn.onmouseleave = () => { resetBtn.style.background = '#e74c3c'; };
+        resetBtn.onclick = (e) => {
+            e.stopPropagation();
+            const confirmOverlay = document.createElement('div');
+            confirmOverlay.id = 'reset-confirm-overlay';
+            confirmOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:2010;display:flex;justify-content:center;align-items:center;';
+            const confirmBox = document.createElement('div');
+            confirmBox.style.cssText = 'background:#2c3e50;border:2px solid #e74c3c;border-radius:12px;padding:30px;text-align:center;font-family:Verdana,sans-serif;max-width:350px;';
+            confirmBox.innerHTML = '<div style="color:#e74c3c;font-size:24px;margin-bottom:10px;">⚠️</div><div style="color:#fff;font-size:16px;font-weight:bold;margin-bottom:8px;">Reset All Progress?</div><div style="color:#bdc3c7;font-size:13px;margin-bottom:20px;">This will erase all discoveries, journal entries, and achievements. This cannot be undone.</div>';
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = 'display:flex;gap:12px;justify-content:center;';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerText = 'CANCEL';
+            cancelBtn.style.cssText = 'background:#7f8c8d;color:#fff;border:none;border-radius:6px;padding:10px 24px;font-weight:bold;cursor:pointer;font-size:13px;';
+            cancelBtn.onclick = () => confirmOverlay.remove();
+            const confirmBtn = document.createElement('button');
+            confirmBtn.innerText = 'RESET';
+            confirmBtn.style.cssText = 'background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:10px 24px;font-weight:bold;cursor:pointer;font-size:13px;';
+            confirmBtn.onclick = () => {
+                compoundInventory.resetAll();
+                this.history = [];
+                window.sessionStorage.removeItem('chemSimHistory');
+                confirmOverlay.remove();
+                overlay.remove();
+                this.uiManager.closeAllMenus();
+                this.cameras.main.flash(400, 255, 100, 100);
+                this.scene.restart();
+            };
+            btnRow.appendChild(cancelBtn);
+            btnRow.appendChild(confirmBtn);
+            confirmBox.appendChild(btnRow);
+            confirmOverlay.appendChild(confirmBox);
+            document.body.appendChild(confirmOverlay);
+        };
+
+        footer.appendChild(closeHint);
+        footer.appendChild(resetBtn);
 
         book.appendChild(header);
         book.appendChild(list);
@@ -624,27 +667,15 @@ export class Stage2 extends Phaser.Scene {
 
 
 
-                    // ===== PRIORITY 3: DUPLICATE CHECK =====
-                    // Gas compounds (H2, O2, Cl2) are allowed as duplicates
-                    const gasNames = ['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas'];
-                    if (products.length > 0) {
-                        const mainProduct = products[0];
-                        if (!gasNames.includes(mainProduct.name) && compoundInventory.hasCompound(mainProduct.name)) {
-                            // Already discovered (non-gas)!
-                            this.showAlreadyFormulatedMessage();
-                            this.time.delayedCall(2000, () => {
-                                this.combineBtn.setVisible(true);
-                                this.combineBtnPressed.setVisible(false);
-                                this.combineBtn.setInteractive();
-                                this.buttonPressed = false;
-                            });
-                            return;
-                        }
-                    }
+                    // ===== PRIORITY 3: REPEAT CHECK (reactant-combination-based) =====
+                    // Build a unique key from the sorted reactant symbols
+                    const combinationKey = reaction.reactants.slice().sort().join('_');
+                    const isRepeat = compoundInventory.hasDiscovery(combinationKey);
 
                     // ALL CHECKS PASSED -> Show reaction result
+                    // isRepeat = true means products go on shelf but no celebration or counter increment
                     this.wrongAttempts = 0;
-                    this.showReactionResult(reaction);
+                    this.showReactionResult(reaction, isRepeat);
                 }
             } catch (error) {
                 console.error('CRITICAL ERROR in combineBtn:', error);
@@ -873,89 +904,115 @@ export class Stage2 extends Phaser.Scene {
         }
     }
 
-    addCompoundToInventory(compound) {
-        compoundInventory.addCompound(compound.name);
-        this.showCongratsScreen(compound);
-        // Refresh entire inventory to handle pagination/sorting
-        this.renderInventory();
-
-        // CHECK MILESTONES (5-10-15 grouped unlock system)
-        const discoveryCount = compoundInventory.getDiscoveryCount();
-        const TOTAL_RECIPES = 20; // Total unique non-gas compounds discoverable
-
-        if (discoveryCount >= 5 && !compoundInventory.hasShownBronze) {
-            compoundInventory.hasShownBronze = true;
-            this.time.delayedCall(2000, () => {
-                this.showAchievementBadge('bronze');
-                this.showMissionMessage('BRONZE ALCHEMIST! Decomposition unlocked! Discover 5 more to learn Displacement!');
-            });
-        }
-        if (discoveryCount >= 10 && !compoundInventory.hasShownSilver) {
-            compoundInventory.hasShownSilver = true;
-            this.time.delayedCall(2000, () => {
-                this.showAchievementBadge('silver');
-                this.showMissionMessage('SILVER CHEMIST! Displacement unlocked! Discover 5 more to reach the final tier!');
-            });
-        }
-
-        // Gold Master Alchemist — triggers when ALL unique recipes found
-        if (discoveryCount >= TOTAL_RECIPES && !compoundInventory.isMasterUnlocked) {
-            compoundInventory.isMasterUnlocked = true;
-            this.time.delayedCall(2500, () => {
-                this.showAchievementBadge('master');
-                this.showMissionMessage('GOLD MASTER ALCHEMIST! Every recipe discovered!');
-            });
-        }
-    }
+    // addCompoundToInventory removed — showReactionResult handles shelf, discovery, and milestones
 
     showAchievementBadge(tier) {
-        // DOM-BASED CSS ACHIEVEMENT BADGE — non-blocking, top-center, z-index 1050
+        // Remove any existing badge first
+        const existing = document.querySelector('.achievement-badge');
+        if (existing) existing.remove();
+
         const config = {
-            bronze: { css: 'badge-bronze', symbol: '5', label: 'BRONZE ALCHEMIST' },
-            silver: { css: 'badge-silver', symbol: '10', label: 'SILVER CHEMIST' },
-            master: { css: 'badge-master', symbol: '\u2605', label: 'GOLD MASTER ALCHEMIST' }
+            bronze: { css: 'badge-bronze', symbol: '5', label: 'BRONZE ALCHEMIST', subtitle: '5 Compounds Discovered' },
+            silver: { css: 'badge-silver', symbol: '10', label: 'SILVER CHEMIST', subtitle: '10 Compounds Discovered' },
+            master: { css: 'badge-master', symbol: '★', label: 'GOLD MASTER ALCHEMIST', subtitle: 'All Compounds Discovered' }
         }[tier];
 
-        // Create badge container
+        // Vertical layout: badge icon on top, label below, subtitle underneath
         const wrapper = document.createElement('div');
-        wrapper.className = `achievement-badge ${config.css}`;
-        wrapper.innerHTML = `
-            <div class="badge-circle">${config.symbol}</div>
-            <div class="badge-label">${config.label}</div>
-        `;
+        wrapper.className = 'achievement-badge ' + config.css;
+        wrapper.innerHTML =
+            '<div class="badge-circle">' + config.symbol + '</div>' +
+            '<div class="badge-label">' + config.label + '</div>' +
+            '<div class="badge-subtitle">' + config.subtitle + '</div>';
         document.body.appendChild(wrapper);
 
-        // Master: add sparkle screen overlay
-        let sparkleOverlay = null;
-        if (tier === 'master') {
-            sparkleOverlay = document.createElement('div');
-            sparkleOverlay.className = 'sparkle-overlay';
+        // Save achievement to session
+        window.sessionStorage.setItem('chemSimBadge_' + tier, 'true');
 
-            // Generate star particles
-            const starColors = ['#FFD700', '#FFFFFF', '#FFF8DC', '#FFE4B5', '#FFC107', '#FFEB3B'];
-            for (let i = 0; i < 50; i++) {
-                const star = document.createElement('div');
-                star.className = 'sparkle-star';
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                star.style.backgroundColor = starColors[Math.floor(Math.random() * starColors.length)];
-                star.style.width = `${4 + Math.random() * 8}px`;
-                star.style.height = star.style.width;
-                star.style.setProperty('--duration', `${0.6 + Math.random() * 1.4}s`);
-                star.style.setProperty('--delay', `${Math.random() * 2}s`);
-                sparkleOverlay.appendChild(star);
-            }
-            document.body.appendChild(sparkleOverlay);
+        // For master tier, trigger grand finale after badge slides in
+        if (tier === 'master') {
+            setTimeout(() => {
+                wrapper.classList.add('fade-out');
+                setTimeout(() => {
+                    wrapper.remove();
+                    this.showGrandFinale();
+                }, 500);
+            }, 2500);
+            return;
         }
 
-        // Fade out after 4 seconds, remove after animation
+        // Slide out after 4 seconds
         setTimeout(() => {
             wrapper.classList.add('fade-out');
-            setTimeout(() => {
-                wrapper.remove();
-                if (sparkleOverlay) sparkleOverlay.remove();
-            }, 600);
+            setTimeout(() => wrapper.remove(), 500);
         }, 4000);
+    }
+
+    showGrandFinale() {
+        // Remove any existing finale
+        const existing = document.querySelector('.grand-finale-overlay');
+        if (existing) existing.remove();
+
+        // Fullscreen dark overlay with centered gold badge and confetti
+        const overlay = document.createElement('div');
+        overlay.className = 'grand-finale-overlay';
+
+        // Large gold badge
+        const badge = document.createElement('div');
+        badge.className = 'finale-badge';
+        badge.textContent = '★';
+
+        // Title
+        const title = document.createElement('div');
+        title.className = 'finale-title';
+        title.textContent = 'MASTER CHEMIST';
+
+        // Subtitle
+        const subtitle = document.createElement('div');
+        subtitle.className = 'finale-subtitle';
+        subtitle.textContent = 'All Compounds Discovered!';
+
+        // Dismiss hint
+        const dismiss = document.createElement('div');
+        dismiss.className = 'finale-dismiss';
+        dismiss.textContent = 'Click anywhere to continue';
+
+        overlay.appendChild(badge);
+        overlay.appendChild(title);
+        overlay.appendChild(subtitle);
+        overlay.appendChild(dismiss);
+
+        // Confetti particles (80 for perf balance)
+        const confettiColors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+        for (let i = 0; i < 80; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'confetti-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 30 + '%';
+            particle.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+            particle.style.width = (4 + Math.random() * 8) + 'px';
+            particle.style.height = (4 + Math.random() * 8) + 'px';
+            particle.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            particle.style.setProperty('--fall-duration', (2 + Math.random() * 3) + 's');
+            particle.style.setProperty('--fall-delay', (Math.random() * 1.5) + 's');
+            particle.style.setProperty('--spin', (360 + Math.random() * 720) + 'deg');
+            overlay.appendChild(particle);
+        }
+
+        document.body.appendChild(overlay);
+
+        // Save grand finale flag
+        window.sessionStorage.setItem('chemSimGrandFinale', 'true');
+
+        // Dismiss on click or auto after 6 seconds
+        const dismissOverlay = () => {
+            if (!overlay.parentNode) return;
+            overlay.classList.add('fade-out');
+            setTimeout(() => overlay.remove(), 600);
+        };
+
+        overlay.addEventListener('click', dismissOverlay);
+        setTimeout(dismissOverlay, 6000);
     }
 
     // New method to render full inventory page
@@ -1667,17 +1724,16 @@ export class Stage2 extends Phaser.Scene {
     }
 
 
-    showReactionResult(reaction) {
+    showReactionResult(reaction, isRepeat) {
         this.hideHint();
 
         // 1. Add to history for ALL reaction types
         this.addToHistory(reaction);
 
-        // 2. Unlock Products on Shelf & Check Milestones
+        // 2. Place products on shelf for all reactions (new or repeat)
         reaction.products.forEach(productSymbol => {
             const compound = compounds.find(c => c.symbol === productSymbol);
             if (compound) {
-                // addCompound handles duplicates (blocks non-gas, allows gas) and capacity
                 const added = compoundInventory.addCompound(compound.name);
                 if (added) {
                     this.displayCompoundInInventory(compound);
@@ -1685,44 +1741,54 @@ export class Stage2 extends Phaser.Scene {
             }
         });
 
-        // CHECK MILESTONES (5-10-15 grouped unlock system)
-        const discoveryCount = compoundInventory.getDiscoveryCount();
-        const TOTAL_RECIPES = 20;
+        // Only track discovery and check milestones for first-time combinations
+        if (!isRepeat) {
+            const discoveryID = reaction.reactants.slice().sort().join('_');
+            compoundInventory.addDiscovery(discoveryID);
 
-        if (discoveryCount >= 5 && !compoundInventory.hasShownBronze) {
-            compoundInventory.hasShownBronze = true;
-            this.time.delayedCall(2000, () => {
-                this.showAchievementBadge('bronze');
-                this.showMissionMessage('BRONZE ALCHEMIST! Decomposition unlocked! Discover 5 more to learn Displacement!');
-            });
-        }
-        if (discoveryCount >= 10 && !compoundInventory.hasShownSilver) {
-            compoundInventory.hasShownSilver = true;
-            this.time.delayedCall(2000, () => {
-                this.showAchievementBadge('silver');
-                this.showMissionMessage('SILVER CHEMIST! Displacement unlocked! Discover 5 more to reach the final tier!');
-            });
+            // CHECK MILESTONES (5-10-15 grouped unlock system)
+            const discoveryCount = compoundInventory.getDiscoveryCount();
+            const TOTAL_RECIPES = 20;
+
+            if (discoveryCount >= 5 && !compoundInventory.hasShownBronze) {
+                compoundInventory.hasShownBronze = true;
+                this.time.delayedCall(2000, () => {
+                    this.showAchievementBadge('bronze');
+                    this.showMissionMessage('BRONZE ALCHEMIST! Decomposition unlocked! Discover 5 more to learn Displacement!');
+                });
+            }
+            if (discoveryCount >= 10 && !compoundInventory.hasShownSilver) {
+                compoundInventory.hasShownSilver = true;
+                this.time.delayedCall(2000, () => {
+                    this.showAchievementBadge('silver');
+                    this.showMissionMessage('SILVER CHEMIST! Displacement unlocked! Discover 5 more to reach the final tier!');
+                });
+            }
+
+            // Gold Master Alchemist
+            if (discoveryCount >= TOTAL_RECIPES && !compoundInventory.isMasterUnlocked) {
+                compoundInventory.isMasterUnlocked = true;
+                this.time.delayedCall(2500, () => {
+                    this.showAchievementBadge('master');
+                    this.showMissionMessage('GOLD MASTER ALCHEMIST! Every recipe discovered!');
+                });
+            }
         }
 
-        // Gold Master Alchemist — triggers when ALL unique recipes found
-        if (discoveryCount >= TOTAL_RECIPES && !compoundInventory.isMasterUnlocked) {
-            compoundInventory.isMasterUnlocked = true;
-            this.time.delayedCall(2500, () => {
-                this.showAchievementBadge('master');
-                this.showMissionMessage('GOLD MASTER ALCHEMIST! Every recipe discovered!');
-            });
-        }
-
-        // 3. Handle SYNTHESIS - Show full celebration screen (ALL products including gases)
+        // 3. Handle SYNTHESIS
         if (reaction.type === 'synthesis') {
-            // Find the first compound product
             const newCompound = reaction.products
                 .map(symbol => compounds.find(c => c.symbol === symbol))
                 .find(c => c !== undefined);
 
             if (newCompound) {
-                // Full Celebration for ALL synthesis products (including O2, Cl2, H2)
-                this.showCongratsScreen(newCompound);
+                if (isRepeat) {
+                    // Repeat: silently place on shelf, clear beaker, no celebration
+                    this.clearDropZone();
+                } else {
+                    // First time: full celebration
+                    this.showCongratsScreen(newCompound);
+                }
             }
             return;
         }
@@ -1765,8 +1831,9 @@ export class Stage2 extends Phaser.Scene {
             strokeThickness: 3
         }).setOrigin(0.5).setDepth(1001);
 
-        // Balanced Equation
-        const equationText = this.add.text(928, 380, reaction.equation, {
+        // Balanced Equation (strip '+ Heat' / '+ High Heat' for display)
+        const displayEquation = reaction.equation.replace(/\s*\+\s*(?:High\s+)?Heat/gi, '');
+        const equationText = this.add.text(928, 380, displayEquation, {
             fontSize: '44px',
             fill: '#ecf0f1',
             fontFamily: 'Verdana, sans-serif',
@@ -2057,8 +2124,9 @@ export class Stage2 extends Phaser.Scene {
 
                 groups[type].forEach(r => {
                     const productStr = r.products.map(p => p.replace(/_c$/, '')).join(' + ');
+                    const journalEquation = r.equation.replace(/\s*\+\s*(?:High\s+)?Heat/gi, '');
                     list.innerHTML += '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed #c4a96a;">' +
-                        '<div style="color:#3c2f1a;font-weight:bold;font-size:14px;margin-bottom:3px;">' + r.equation + '</div>' +
+                        '<div style="color:#3c2f1a;font-weight:bold;font-size:14px;margin-bottom:3px;">' + journalEquation + '</div>' +
                         '<div style="color:#2ecc71;font-size:15px;font-weight:bold;">\u2192 ' + productStr + '</div>' +
                         '</div>';
                 });

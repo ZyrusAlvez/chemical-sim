@@ -1,6 +1,7 @@
 import { Start } from './scenes/Start.js?v=QQQQQQ';
 import { Stage2 } from './scenes/Stage2.js?v=QQQQQQ';
 import { Tutorial } from './scenes/Tutorial.js?v=cache_bust_01';
+import { globalUIManager } from './UIManager.js';
 
 // Listen for Game Ready event to remove Skeleton
 window.addEventListener('game-ready', () => {
@@ -19,6 +20,9 @@ window.gameProgress = window.gameProgress || {
         master: false
     }
 };
+
+// Expose global UIManager for scenes
+window.gameUIManager = globalUIManager;
 
 // Determine start scene from URL query
 const urlParams = new URLSearchParams(window.location.search);

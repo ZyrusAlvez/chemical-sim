@@ -209,7 +209,7 @@
         "products": [
             "MgO_c"
         ],
-        "equation": "Mg + O2 + Heat → MgO",
+        "equation": "2Mg + O2 + Heat → 2MgO",
         "energy_source": "initial_heat",
         "visual_effect": "Bright Flame",
         "product_effect": "bright_flame",
@@ -340,7 +340,7 @@
             "ZnCl2",
             "H2"
         ],
-        "equation": "Zn + HCl → ZnCl2 + H2",
+        "equation": "Zn + 2HCl → ZnCl2 + H2",
         "energy_source": null,
         "visual_effect": "Vigorous Bubbling",
         "product_effect": "bubbles",

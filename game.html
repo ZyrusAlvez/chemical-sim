@@ -184,48 +184,87 @@
         }
 
         /* ══════════════════════════════════════════
-           ACHIEVEMENT BADGE SYSTEM
+           ACHIEVEMENT BADGE SYSTEM (Redesigned)
            ══════════════════════════════════════════ */
 
         .achievement-badge {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            z-index: 1050;
+            position: fixed !important;
+            bottom: 0 !important;
+            top: auto !important;
+            left: 50% !important;
+            transform: translateX(-50%) translateY(100%);
+            z-index: 2050 !important;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            animation: badgeBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 20px !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            padding: 20px 40px 24px 40px;
+            background: rgba(10, 10, 20, 0.92);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+            backdrop-filter: blur(12px);
+            animation: badgeSlideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         .achievement-badge.fade-out {
-            animation: badgeFadeOut 0.6s ease-in forwards;
+            animation: badgeSlideDown 0.5s ease-in forwards !important;
         }
 
         .badge-circle {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 80px !important;
+            height: 80px !important;
+            min-width: 80px !important;
+            min-height: 80px !important;
+            border-radius: 50% !important;
+            font-size: 32px;
             font-weight: bold;
             color: #ffffff;
             text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 -3px 8px rgba(0, 0, 0, 0.3), inset 0 3px 8px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4),
+                inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+                inset 0 3px 8px rgba(255, 255, 255, 0.2);
+            flex-shrink: 0 !important;
+            margin: 0 !important;
         }
 
         .badge-label {
-            font-family: 'Verdana', sans-serif;
-            font-size: 18px;
+            position: relative !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'SFPro-Bold', 'Verdana', sans-serif;
+            font-size: 17px;
             font-weight: bold;
+            color: inherit;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+            letter-spacing: 2px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .badge-subtitle {
+            position: relative !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'SFPro-Bold', 'Verdana', sans-serif;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
             letter-spacing: 1px;
+            text-align: center;
         }
 
         /* Bronze Badge */
@@ -238,6 +277,10 @@
             color: #CD7F32;
         }
 
+        .badge-bronze {
+            border-color: rgba(205, 127, 50, 0.4);
+        }
+
         /* Silver Badge */
         .badge-silver .badge-circle {
             background: radial-gradient(circle at 35% 35%, #f0f0f0, #C0C0C0 50%, #808080);
@@ -245,10 +288,14 @@
         }
 
         .badge-silver .badge-label {
-            color: #C0C0C0;
+            color: #E0E0E0;
         }
 
-        /* Master Badge */
+        .badge-silver {
+            border-color: rgba(192, 192, 192, 0.4);
+        }
+
+        /* Master (Gold) Badge */
         .badge-master .badge-circle {
             background: radial-gradient(circle at 35% 35%, #fff7a0, #FFD700 50%, #B8860B);
             border: 3px solid #FFD700;
@@ -259,36 +306,32 @@
             color: #FFD700;
         }
 
-        @keyframes badgeBounceIn {
+        .badge-master {
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        /* Animations — badge slides UP from bottom */
+        @keyframes badgeSlideUp {
             0% {
+                transform: translateX(-50%) translateY(100%);
                 opacity: 0;
-                transform: translateX(-50%) scale(0);
-            }
-
-            50% {
-                opacity: 1;
-                transform: translateX(-50%) scale(1.2);
-            }
-
-            70% {
-                transform: translateX(-50%) scale(0.95);
             }
 
             100% {
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
-                transform: translateX(-50%) scale(1);
             }
         }
 
-        @keyframes badgeFadeOut {
+        @keyframes badgeSlideDown {
             0% {
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
-                transform: translateX(-50%) scale(1);
             }
 
             100% {
+                transform: translateX(-50%) translateY(100%);
                 opacity: 0;
-                transform: translateX(-50%) scale(0.6);
             }
         }
 
@@ -296,63 +339,149 @@
 
             0%,
             100% {
-                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 -3px 8px rgba(0, 0, 0, 0.3), inset 0 3px 8px rgba(255, 255, 255, 0.2);
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.4),
+                    0 4px 20px rgba(0, 0, 0, 0.4),
+                    inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+                    inset 0 3px 8px rgba(255, 255, 255, 0.2);
             }
 
             50% {
-                box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.3), 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 -3px 8px rgba(0, 0, 0, 0.3), inset 0 3px 8px rgba(255, 255, 255, 0.2);
+                box-shadow: 0 0 40px rgba(255, 215, 0, 0.8),
+                    0 0 80px rgba(255, 215, 0, 0.3),
+                    0 4px 20px rgba(0, 0, 0, 0.4),
+                    inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+                    inset 0 3px 8px rgba(255, 255, 255, 0.2);
             }
         }
 
-        /* Sparkle Screen Effect */
-        .sparkle-overlay {
+        /* ══════════════════════════════════════════
+           GRAND FINALE OVERLAY
+           ══════════════════════════════════════════ */
+
+        .grand-finale-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1049;
-            pointer-events: none;
-            background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
-            animation: sparkleFlash 3s ease-out forwards;
+            z-index: 2049;
+            background: rgba(5, 5, 15, 0.88);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(14px, 2.5vh, 24px);
+            opacity: 0;
+            animation: finaleIn 0.8s ease-out 0.2s forwards;
+            cursor: pointer;
+            contain: layout;
         }
 
-        @keyframes sparkleFlash {
-            0% {
-                opacity: 0;
-            }
-
-            10% {
-                opacity: 1;
-            }
-
-            100% {
-                opacity: 0;
-            }
+        .grand-finale-overlay.fade-out {
+            animation: finaleOut 0.6s ease-in forwards;
         }
 
-        .sparkle-star {
-            position: absolute;
-            width: 6px;
-            height: 6px;
+        .finale-badge {
+            width: clamp(100px, 16vh, 160px);
+            height: clamp(100px, 16vh, 160px);
             border-radius: 50%;
-            animation: starTwinkle var(--duration, 1s) var(--delay, 0s) ease-in-out forwards;
+            background: radial-gradient(circle at 35% 35%, #fff7a0, #FFD700 50%, #B8860B);
+            border: 4px solid #FFD700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(40px, 7vh, 64px);
+            color: #ffffff;
+            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+            animation: masterPulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5),
+                0 0 100px rgba(255, 215, 0, 0.2);
         }
 
-        @keyframes starTwinkle {
+        .finale-title {
+            font-family: 'SFPro-Bold', 'Verdana', sans-serif;
+            font-size: clamp(20px, 3.5vh, 36px);
+            color: #FFD700;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 15px rgba(255, 215, 0, 0.6);
+            text-align: center;
+        }
+
+        .finale-subtitle {
+            font-family: 'SFPro-Bold', 'Verdana', sans-serif;
+            font-size: clamp(12px, 1.8vh, 18px);
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .finale-dismiss {
+            font-family: 'Verdana', sans-serif;
+            font-size: clamp(10px, 1.4vh, 14px);
+            color: rgba(255, 255, 255, 0.35);
+            font-style: italic;
+            margin-top: clamp(10px, 2vh, 20px);
+            animation: pulseFade 2s ease-in-out infinite;
+        }
+
+        @keyframes finaleIn {
             0% {
                 opacity: 0;
-                transform: scale(0) rotate(0deg);
             }
 
-            40% {
+            100% {
                 opacity: 1;
-                transform: scale(1.5) rotate(180deg);
+            }
+        }
+
+        @keyframes finaleOut {
+            0% {
+                opacity: 1;
             }
 
             100% {
                 opacity: 0;
-                transform: scale(0) rotate(360deg);
+            }
+        }
+
+        @keyframes pulseFade {
+
+            0%,
+            100% {
+                opacity: 0.35;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* Confetti Particles */
+        .confetti-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            opacity: 0;
+            will-change: transform, opacity;
+            contain: strict;
+            animation: confettiFall var(--fall-duration, 3s) var(--fall-delay, 0s) ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-20px) rotate(0deg) scale(1);
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(var(--spin, 720deg)) scale(0.3);
             }
         }
     </style>

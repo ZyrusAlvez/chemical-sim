@@ -2,7 +2,7 @@
 class CompoundInventory {
     constructor() {
         this.MAX_SLOTS = 25;
-        this.duplicateAllowed = ['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas'];
+        this.duplicateAllowed = ['Hydrogen Gas', 'Oxygen Gas', 'Chlorine Gas', 'Silver Chloride'];
         this.load();
     }
 
@@ -40,18 +40,24 @@ class CompoundInventory {
             return false;
         }
         window.gameProgress.unlockedRecipes.push(compoundName);
-
-        // Also track in permanent discovery list (session-only)
-        if (!window.gameProgress.discoveredRecipes.includes(compoundName)) {
-            window.gameProgress.discoveredRecipes.push(compoundName);
-        }
-
         this.save();
         return true;
     }
 
+    // Track a unique discovery by reaction equation (survives Clear Shelf)
+    addDiscovery(equationKey) {
+        if (!window.gameProgress.discoveredRecipes.includes(equationKey)) {
+            window.gameProgress.discoveredRecipes.push(equationKey);
+            this.save();
+        }
+    }
+
     hasCompound(compoundName) {
         return window.gameProgress.unlockedRecipes.includes(compoundName);
+    }
+
+    hasDiscovery(key) {
+        return window.gameProgress.discoveredRecipes.includes(key);
     }
 
     getCreatedCompounds() {
@@ -70,12 +76,10 @@ class CompoundInventory {
         return unique.size;
     }
 
-    // Count unique non-gas DISCOVERIES (permanent within session, survives Clear Shelf)
+    // Count unique discoveries (permanent within session, survives Clear Shelf)
+    // Each reaction equation is a unique discovery
     getDiscoveryCount() {
-        const unique = new Set(window.gameProgress.discoveredRecipes.filter(
-            name => !this.duplicateAllowed.includes(name)
-        ));
-        return unique.size;
+        return window.gameProgress.discoveredRecipes.length;
     }
 
     // Clear SHELF only — does NOT erase discovery progress
@@ -93,6 +97,33 @@ class CompoundInventory {
 
     get isMasterUnlocked() { return window.gameProgress.milestones.master; }
     set isMasterUnlocked(val) { window.gameProgress.milestones.master = val; this.save(); }
+
+    // FULL RESET — wipes ALL progress for a "New Game" experience
+    resetAll() {
+        window.gameProgress = {
+            unlockedRecipes: [],
+            discoveredRecipes: [],
+            milestones: { bronze: false, silver: false, master: false }
+        };
+
+        // Clear all chemSim-related sessionStorage keys
+        const keysToRemove = [];
+        for (let i = 0; i < window.sessionStorage.length; i++) {
+            const key = window.sessionStorage.key(i);
+            if (key && key.startsWith('chemSim')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => window.sessionStorage.removeItem(key));
+
+        // Remove any active achievement popups from the DOM
+        const badge = document.querySelector('.achievement-badge');
+        if (badge) badge.remove();
+        const finale = document.querySelector('.grand-finale-overlay');
+        if (finale) finale.remove();
+
+        this.save();
+    }
 }
 
 // Create global instance
